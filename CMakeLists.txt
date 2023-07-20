@@ -1,2 +1,20 @@
 cmake_minimum_required(VERSION 3.0)
-project(libltc_cpp LANGUAGES CXX)
+project(liblufs LANGUAGES CXX)
+
+option(BUILD_TESTS "Build tests" ON)
+
+add_library(lufs SHARED
+    include/Channel.h
+)
+
+target_include_directories(lufs PUBLIC include)
+
+set_target_properties(lufs PROPERTIES 
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED YES
+)
+
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(test)
+endif()
