@@ -5,6 +5,8 @@ option(BUILD_TESTS "Build tests" ON)
 
 add_library(lufs SHARED
     include/Channel.h
+    include/LoudnessMeter.h
+    src/LoudnessMeter.cpp
 )
 
 target_include_directories(lufs PUBLIC include)
