@@ -25,15 +25,11 @@ void LoudnessMeter::prepare(double sampleRate)
 
 float LoudnessMeter::addSamples(std::span<float> audio)
 {
-    //Fill the end of window with new samples
-    size_t numNewSamples = 0;
-    
+    //Fill the end of window with new filtered samples
     if(audio.size() <= window.size())
     {
-        numNewSamples = audio.size();
-        
         //Make space for new data and copy it in passing through the filters at the same time
-        std::copy(window.begin() + numNewSamples, window.end(), window.begin());
+        std::copy(window.begin() + audio.size(), window.end(), window.begin());
         std::transform(audio.begin(), audio.end(), window.begin() + window.size() - numNewSamples, [this](float sample)
         {
             return filt2.processSample(filt1.processSample(sample));
@@ -41,7 +37,6 @@ float LoudnessMeter::addSamples(std::span<float> audio)
     }
     else
     {
-        numNewSamples = window.size();
         const size_t firstUsuableNewSampleIndex = audio.size() - window.size();
         
         //Pass any samples that will not be used into the filters
@@ -56,8 +51,6 @@ float LoudnessMeter::addSamples(std::span<float> audio)
             return filt2.processSample(filt1.processSample(sample));
         });
     }
-    
-    //Filter the new samples
 }
 
 float LoudnessMeter::getCurrentLoudness() const
