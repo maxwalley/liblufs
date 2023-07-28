@@ -30,7 +30,7 @@ float LoudnessMeter::addSamples(std::span<float> audio)
     {
         //Make space for new data and copy it in passing through the filters at the same time
         std::copy(window.begin() + audio.size(), window.end(), window.begin());
-        std::transform(audio.begin(), audio.end(), window.begin() + window.size() - numNewSamples, [this](float sample)
+        std::transform(audio.begin(), audio.end(), window.begin() + window.size() - audio.size(), [this](float sample)
         {
             return filt2.processSample(filt1.processSample(sample));
         });
