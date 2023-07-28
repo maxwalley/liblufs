@@ -15,7 +15,7 @@ public:
     ~LoudnessMeter();
     
     void prepare(double sampleRate);
-    float addSamples(std::span<float> audio);
+    float addSamples(std::span<const float> audio);
     
     float getCurrentLoudness() const;
     

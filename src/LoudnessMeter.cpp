@@ -23,7 +23,7 @@ void LoudnessMeter::prepare(double sampleRate)
     filt2.reset();
 }
 
-float LoudnessMeter::addSamples(std::span<float> audio)
+float LoudnessMeter::addSamples(std::span<const float> audio)
 {
     //Fill the end of window with new filtered samples
     if(audio.size() <= window.size())
