@@ -51,6 +51,10 @@ float LoudnessMeter::addSamples(std::span<const float> audio)
             return filt2.processSample(filt1.processSample(sample));
         });
     }
+    
+    const float accumulatedMeanSquares = calculateMeanSquares(window) * 1.0;
+    
+    return accumulatedMeanSquares;
 }
 
 float LoudnessMeter::getCurrentLoudness() const
@@ -71,6 +75,20 @@ void LoudnessMeter::initialiseFilters()
     filt2.b0 = 1.0;
     filt2.b1 = -2.0;
     filt2.b2 = 1.0;
+}
+
+float LoudnessMeter::calculateMeanSquares(std::span<const float> buffer) const
+{
+    float meanSquares = 0.0f;
+    
+    std::for_each(buffer.begin(), buffer.end(), [&](double sample)
+    {
+        meanSquares += std::pow(sample, 2.0f);
+    });
+    
+    meanSquares *= (1.0f / buffer.size());
+    
+    return meanSquares;
 }
 
 }

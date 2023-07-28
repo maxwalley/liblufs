@@ -21,6 +21,7 @@ public:
     
 private:
     void initialiseFilters();
+    float calculateMeanSquares(std::span<const float> buffer) const;
     
     std::chrono::milliseconds length;
     std::vector<float> window;
