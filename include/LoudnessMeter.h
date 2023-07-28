@@ -3,6 +3,7 @@
 #include <chrono>
 #include <vector>
 #include <span>
+#include "Filter.h"
 
 namespace LUFS
 {
@@ -19,8 +20,13 @@ public:
     float getCurrentLoudness() const;
     
 private:
+    void initialiseFilters();
+    
     std::chrono::milliseconds length;
     std::vector<float> window;
+    
+    Filter filt1;
+    Filter filt2;
     
     float lastLoudness = 0.0f;
 };
