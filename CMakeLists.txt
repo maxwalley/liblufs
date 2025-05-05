@@ -19,10 +19,10 @@ set_target_properties(lufs PROPERTIES
     PUBLIC_HEADER "include/LoudnessMeter.h;include/Channel.h;include/Filter.h"
 )
 
-install(TARGETS lufs
-    PUBLIC_HEADER DESTINATION include)
-
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(test)
 endif()
+
+install(TARGETS lufs
+    PUBLIC_HEADER DESTINATION include)
