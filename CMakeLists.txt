@@ -16,7 +16,11 @@ set_target_properties(lufs PROPERTIES
     LINKER_LANGUAGE CXX
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED YES
+    PUBLIC_HEADER "include/LoudnessMeter.h;include/Channel.h;include/Filter.h"
 )
+
+install(TARGETS lufs
+    PUBLIC_HEADER DESTINATION include)
 
 if(BUILD_TESTS)
     enable_testing()
