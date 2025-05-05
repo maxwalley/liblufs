@@ -24,9 +24,16 @@ add_executable(tests
     test_test.cpp
 )
 
+set_target_properties(tests PROPERTIES 
+    LINKER_LANGUAGE CXX
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED YES
+)
+
 target_link_libraries(
     tests
     GTest::gtest_main
+    lufs
 )
 
 include(GoogleTest)

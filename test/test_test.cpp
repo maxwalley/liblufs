@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "LoudnessMeter.h"
+
 TEST(ExampleTests, ExamplePass)
 {
     ASSERT_EQ(5, 5);
