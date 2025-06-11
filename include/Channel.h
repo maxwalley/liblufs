@@ -33,10 +33,15 @@ struct Channel
             case StandardChannel::Left:
             case StandardChannel::Right:
                 createdChannel.azimuth = 30.0f;
+                break;
 
             case StandardChannel::LeftSurround:
             case StandardChannel::RightSurround:
                 createdChannel.azimuth = 110.0f;
+                break;
+
+            default:
+                break;
         }
 
         return createdChannel;
