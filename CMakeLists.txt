@@ -8,6 +8,7 @@ add_library(lufs SHARED
     include/Filter.h
     include/LoudnessMeter.h
     src/LoudnessMeter.cpp
+    src/ChannelProcessor.cpp
 )
 
 target_include_directories(lufs PUBLIC include)

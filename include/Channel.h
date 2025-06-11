@@ -14,9 +14,6 @@ enum class StandardChannel
 
 struct Channel
 {
-    float azimuth;
-    float elevation;
-
     float getWeighting()
     {
         if(elevation < 30.0f && azimuth >= 60.0f && azimuth <= 120.0f)
@@ -44,6 +41,9 @@ struct Channel
 
         return createdChannel;
     }
+
+    float azimuth;
+    float elevation;
 };
 
 }
