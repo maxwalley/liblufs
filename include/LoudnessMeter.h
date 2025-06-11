@@ -1,6 +1,7 @@
 #pragma once
 
-#include "ChannelProcessor.h"
+#include "NonGatedChannelProcessor.h"
+#include "GatedChannelProcessor.h"
 
 namespace LUFS
 {
@@ -17,7 +18,7 @@ public:
     float getCurrentLoudness() const;
     
 private:
-    std::vector<ChannelProcessor> channelProcessors;
+    std::vector<std::unique_ptr<ChannelProcessor>> channelProcessors;
     
     float lastLoudness = 0.0f;
 };

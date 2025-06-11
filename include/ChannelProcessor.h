@@ -1,4 +1,8 @@
+#pragma once
+
 #include <span>
+
+#include "Channel.h"
 #include "Filter.h"
 
 namespace LUFS
@@ -7,21 +11,27 @@ namespace LUFS
 class ChannelProcessor
 {
 public:
-    ChannelProcessor(const std::chrono::milliseconds& windowLength);
-    ~ChannelProcessor();
+    ChannelProcessor(float channelWeighting);
+    virtual ~ChannelProcessor();
     
     void prepare(double sampleRate);
-    float process(std::span<const float> channelBuffer);
+    virtual std::optional<float> process(std::span<const float> channelBuffer)=0;
     
+protected:
+    double getSampleRate() const;
+
+    const float weighting;
+
 private:
+    virtual void prepare() {};
+
     void initialiseFilters();
     float calculateMeanSquares(std::span<const float> buffer) const;
     
-    std::chrono::milliseconds length;
-    std::vector<float> window;
-    
     Filter filt1;
     Filter filt2;
+
+    double sr;
 };
 
 }

@@ -14,14 +14,14 @@ enum class StandardChannel
 
 struct Channel
 {
-    float getWeighting()
+    float getWeighting() const
     {
         if(elevation < 30.0f && azimuth >= 60.0f && azimuth <= 120.0f)
         {
             return 1.41f;
         }
 
-        return 1.0f
+        return 1.0f;
     }
 
     static Channel createStandard(StandardChannel channelType)

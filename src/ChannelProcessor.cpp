@@ -3,7 +3,7 @@
 namespace LUFS
 {
 
-ChannelProcessor::ChannelProcessor(const std::chrono::milliseconds& windowLength)  : length(windowLength)
+ChannelProcessor::ChannelProcessor(float channelWeighting)  : weighting(channelWeighting)
 {
     initialiseFilters();
 }
@@ -15,16 +15,17 @@ ChannelProcessor::~ChannelProcessor()
 
 void ChannelProcessor::prepare(double sampleRate)
 {
-    window.resize((length.count() / 1000.0) * sampleRate);
-    std::fill(window.begin(), window.end(), 0.0f);
-    
+    sr = sampleRate;
+
     filt1.reset();
     filt2.reset();
+
+    prepare();
 }
 
-float ChannelProcessor::process(std::span<const float> channelBuffer)
+double ChannelProcessor::getSampleRate() const
 {
-    return 0.0f;
+    return sr;
 }
 
 void ChannelProcessor::initialiseFilters()
