@@ -11,27 +11,25 @@ namespace LUFS
 class ChannelProcessor
 {
 public:
-    ChannelProcessor(float channelWeighting);
+    /*
+    Leave integration time nullopt for full integrated loudness
+    */
+    ChannelProcessor(float channelWeighting, bool gated, const std::optional<int>& integrationTimeMs = std::nullopt);
     virtual ~ChannelProcessor();
     
-    void prepare(double sampleRate);
-    virtual std::optional<float> process(std::span<const float> channelBuffer)=0;
-    
-protected:
-    double getSampleRate() const;
-
-    const float weighting;
+    void prepare();
+    std::optional<float> process(std::span<const float> channelBuffer);
 
 private:
-    virtual void prepare() {};
-
     void initialiseFilters();
+
+    float filterSample(float sample);
     float calculateMeanSquares(std::span<const float> buffer) const;
     
+    const float weighting;
+
     Filter filt1;
     Filter filt2;
-
-    double sr;
 };
 
 }

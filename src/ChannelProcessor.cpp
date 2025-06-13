@@ -3,7 +3,7 @@
 namespace LUFS
 {
 
-ChannelProcessor::ChannelProcessor(float channelWeighting)  : weighting(channelWeighting)
+ChannelProcessor::ChannelProcessor(float channelWeighting, bool gated, const std::optional<int>& integrationTimeMs)  : weighting(channelWeighting)
 {
     initialiseFilters();
 }
@@ -13,19 +13,15 @@ ChannelProcessor::~ChannelProcessor()
     
 }
 
-void ChannelProcessor::prepare(double sampleRate)
+void ChannelProcessor::prepare()
 {
-    sr = sampleRate;
-
     filt1.reset();
     filt2.reset();
-
-    prepare();
 }
 
-double ChannelProcessor::getSampleRate() const
+std::optional<float> ChannelProcessor::process(std::span<const float> channelBuffer)
 {
-    return sr;
+
 }
 
 void ChannelProcessor::initialiseFilters()
@@ -41,6 +37,11 @@ void ChannelProcessor::initialiseFilters()
     filt2.b0 = 1.0;
     filt2.b1 = -2.0;
     filt2.b2 = 1.0;
+}
+
+float ChannelProcessor::filterSample(float sample)
+{
+    return filt2.processSample(filt1.processSample(sample));
 }
 
 float ChannelProcessor::calculateMeanSquares(std::span<const float> buffer) const

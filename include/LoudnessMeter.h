@@ -1,7 +1,6 @@
 #pragma once
 
-#include "NonGatedChannelProcessor.h"
-#include "GatedChannelProcessor.h"
+#include "ChannelProcessor.h"
 
 namespace LUFS
 {
