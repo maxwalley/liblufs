@@ -19,11 +19,18 @@ public:
     void process(const std::vector<std::vector<float>>& buffer);
     
 private:
+    void calculateBlockLoudness(Block& block) const;
+    void updateCurrentLoudness();
+
+    const bool gate;
+
     std::vector<ChannelProcessor> channelProcessors;
     std::vector<Block> blocks;
     size_t blocksWritePos = 0;
 
     size_t currentBlockWritePos = 0;
+
+    float currentLoudness = 0.0f;
 
     static constexpr int sampleRate = 48000;
     static constexpr int blockLengthMs = 400;
