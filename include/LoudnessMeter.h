@@ -25,7 +25,7 @@ private:
     void calculateBlockLoudness(Block& block) const;
     void addBlock(const Block& newBlock);
 
-    HistogramBlock& getHistogramBlockForLoudness(float loudness);
+    size_t getHistogramBinIndexForLoudness(float loudness) const;
 
     float getLoudnessFixedLength() const;
     float getLoudnessIntegrated() const;
@@ -41,6 +41,7 @@ private:
 
     //For integrated metering
     std::vector<HistogramBlock> blockHistogram;
+    float histogramMappingSlope = 0.0f;
 
     size_t currentBlockWritePos = 0;
 

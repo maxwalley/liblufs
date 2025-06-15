@@ -26,6 +26,8 @@ LoudnessMeter::LoudnessMeter(const std::vector<Channel>& channels, bool gated, c
     {
         constexpr size_t numHistogramElements = (1.0f / integratedHistogramResolution) * (highestIntegratedValue - lowestIntegratedValue);
         blockHistogram.resize(numHistogramElements);
+
+        histogramMappingSlope = (numHistogramElements - 1.0f) / (highestIntegratedValue - lowestIntegratedValue);
     }
 }
 
@@ -152,7 +154,7 @@ void LoudnessMeter::addBlock(const Block& newBlock)
     }
     else
     {
-        HistogramBlock& histBlock = getHistogramBlockForLoudness(newBlock.loudness);
+        HistogramBlock& histBlock = blockHistogram[getHistogramBinIndexForLoudness(newBlock.loudness)];
 
         for(int channelIndex = 0; channelIndex < channelProcessors.size(); ++channelIndex)
         {
@@ -162,9 +164,9 @@ void LoudnessMeter::addBlock(const Block& newBlock)
     }
 }
 
-HistogramBlock& LoudnessMeter::getHistogramBlockForLoudness(float loudness)
+size_t LoudnessMeter::getHistogramBinIndexForLoudness(float loudness) const
 {
-    //IMPLEMENT
+    return std::min(blockHistogram.size() - 1, std::max(size_t(0), size_t(std::round(histogramMappingSlope * (loudness - lowestIntegratedValue)))));
 }
 
 float LoudnessMeter::getLoudnessFixedLength() const
@@ -216,7 +218,7 @@ float LoudnessMeter::getLoudnessIntegrated() const
         {
             float meanSquaresAccum = 0.0f;
 
-            const size_t firstBinIndex = threshold ? /*HERE*/ 0 : 0;
+            const size_t firstBinIndex = threshold ? getHistogramBinIndexForLoudness(*threshold) : size_t(0);
 
             //THIS NEEDS TO BE WORKED OUT BASED ON LOWEST HIST POS FROM THRESH
             std::for_each(blockHistogram.begin() + firstBinIndex, blockHistogram.end(), [&](const HistogramBlock& block)
