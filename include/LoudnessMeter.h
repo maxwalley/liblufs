@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ChannelProcessor.h"
+#include "Block.h"
 
 namespace LUFS
 {
@@ -8,18 +9,28 @@ namespace LUFS
 class LoudnessMeter
 {
 public:
-    LoudnessMeter(const std::chrono::milliseconds& windowLength);
+    /*
+    Leave windowLength as nullopt for integrated loudness
+    */
+    LoudnessMeter(const std::vector<Channel>& channels, bool gated, const std::optional<std::chrono::milliseconds>& windowLength = std::nullopt);
     ~LoudnessMeter();
     
-    void process();
-    void prepare(double sampleRate);
-    
-    float getCurrentLoudness() const;
+    void prepare();
+    void process(const std::vector<std::vector<float>>& buffer);
     
 private:
-    std::vector<std::unique_ptr<ChannelProcessor>> channelProcessors;
-    
-    float lastLoudness = 0.0f;
+    std::vector<ChannelProcessor> channelProcessors;
+    std::vector<Block> blocks;
+    size_t blocksWritePos = 0;
+
+    size_t currentBlockWritePos = 0;
+
+    static constexpr int sampleRate = 48000;
+    static constexpr int blockLengthMs = 400;
+    static constexpr int blockLengthSamples = (blockLengthMs / 1000.0) * sampleRate;
+    static constexpr float overlap = 0.75f;
+    static constexpr int overlapLengthMs = blockLengthMs * (1.0f - overlap);
+    static constexpr int overlapLengthSamples = (overlapLengthMs / 1000.0) * sampleRate;
 };
 
 }
