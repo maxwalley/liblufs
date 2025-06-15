@@ -3,25 +3,30 @@
 namespace LUFS
 {
 
-LoudnessMeter::LoudnessMeter(const std::vector<Channel>& channels, bool gated, const std::optional<std::chrono::milliseconds>& windowLength)  : gate(gated)
+LoudnessMeter::LoudnessMeter(const std::vector<Channel>& channels, bool gated, const std::optional<std::chrono::milliseconds>& windowLength)  : gate(gated), integrated(!windowLength)
 {
     std::transform(channels.begin(), channels.end(), std::back_insert_iterator(channelProcessors), [](const Channel& channel)
     {
         return ChannelProcessor(channel.getWeighting(), blockLengthSamples);
     });
 
-    //Integrated is not yet implemented
-    if(!windowLength)
+    //Fixed length
+    if(!integrated)
     {
-        assert(false);
+        if(windowLength->count() < blockLengthMs)
+        {
+            throw(std::runtime_error("Integration time must be more than " + std::to_string(blockLengthMs)));
+        }
+
+        blocks.resize(std::floor((windowLength->count() - blockLengthMs) / float(overlapLengthMs)) + 1);
     }
 
-    if(windowLength->count() < blockLengthMs)
+    //Integrated
+    else
     {
-        throw(std::runtime_error("Integration time must be more than " + std::to_string(blockLengthMs)));
+        constexpr size_t numHistogramElements = (1.0f / integratedHistogramResolution) * (highestIntegratedValue - lowestIntegratedValue);
+        blockHistogram.resize(numHistogramElements);
     }
-
-    blocks.resize(std::floor((windowLength->count() - blockLengthMs) / float(overlapLengthMs)) + 1);
 }
 
 LoudnessMeter::~LoudnessMeter()
@@ -31,17 +36,17 @@ LoudnessMeter::~LoudnessMeter()
 
 void LoudnessMeter::prepare()
 {
-    std::fill(blocks.begin(), blocks.end(), Block{std::vector<float>(channelProcessors.size(), 0.0f), 0.0f});
-    blocksWritePos = 0;
-
     std::for_each(channelProcessors.begin(), channelProcessors.end(), [](ChannelProcessor& processor)
     {
         processor.prepare();
     });
 
-    currentBlockWritePos = 0;
+    std::fill(blocks.begin(), blocks.end(), Block{std::vector<float>(channelProcessors.size(), 0.0f), 0.0f});
+    blocksWritePos = 0;
 
-    currentLoudness = 0.0f;
+    std::fill(blockHistogram.begin(), blockHistogram.end(), HistogramBlock{std::vector<float>(channelProcessors.size(), 0.0f), 0});
+
+    currentBlockWritePos = 0;
 }
 
 void LoudnessMeter::process(const std::vector<std::vector<float>>& buffer)
@@ -76,7 +81,7 @@ void LoudnessMeter::process(const std::vector<std::vector<float>>& buffer)
         //Check if we're ready to process
         if(currentBlockWritePos >= blockLengthSamples)
         {
-            Block& block = blocks[blocksWritePos];
+            Block newBlock;
 
             for(size_t channelIndex = 0; channelIndex < buffer.size(); ++channelIndex)
             {
@@ -84,23 +89,18 @@ void LoudnessMeter::process(const std::vector<std::vector<float>>& buffer)
                 std::vector<float>& channelCurrentBlock = channelProcessor.currentBlockData; 
                 
                 //Process mean squares for channel
-                block.channelMeanSquares[channelIndex] = channelProcessor.getCurrentBlockMeanSquares();
+                newBlock.channelMeanSquares[channelIndex] = channelProcessor.getCurrentBlockMeanSquares();
 
                 //Move current block back by overlap samples
                 std::copy(channelCurrentBlock.begin() + overlapLengthSamples, channelCurrentBlock.end(), channelCurrentBlock.begin());
             }
 
-            if(gate)
+            if(gate || integrated)
             {
-                calculateBlockLoudness(block);
+                calculateBlockLoudness(newBlock);
             }
 
-            updateCurrentLoudness();
-
-            if(++blocksWritePos >= blocks.size())
-            {
-                blocksWritePos = 0;
-            }
+            addBlock(newBlock);
 
             //Move write pos back to overlap samples
             currentBlockWritePos = blockLengthSamples - overlapLengthSamples;
@@ -120,6 +120,11 @@ void LoudnessMeter::process(const std::vector<std::vector<float>>& buffer)
     }
 }
 
+float LoudnessMeter::getLoudness() const
+{
+    return integrated ? getLoudnessIntegrated() : getLoudnessFixedLength();
+}
+
 void LoudnessMeter::calculateBlockLoudness(Block& block) const
 {
     assert(block.channelMeanSquares.size() == channelProcessors.size());
@@ -134,8 +139,38 @@ void LoudnessMeter::calculateBlockLoudness(Block& block) const
     block.loudness = -0.691f + 10 * std::log10(currentTotal);
 }
 
-void LoudnessMeter::updateCurrentLoudness()
+void LoudnessMeter::addBlock(const Block& newBlock)
 {
+    if(!integrated)
+    {
+        blocks[blocksWritePos] = newBlock;
+
+        if(++blocksWritePos >= blocks.size())
+        {
+            blocksWritePos = 0;
+        }
+    }
+    else
+    {
+        HistogramBlock& histBlock = getHistogramBlockForLoudness(newBlock.loudness);
+
+        for(int channelIndex = 0; channelIndex < channelProcessors.size(); ++channelIndex)
+        {
+            histBlock.accumulatedChannelMeanSquares[channelIndex] += newBlock.channelMeanSquares[channelIndex];
+            ++histBlock.numBlocks;
+        }
+    }
+}
+
+HistogramBlock& LoudnessMeter::getHistogramBlockForLoudness(float loudness)
+{
+    //IMPLEMENT
+}
+
+float LoudnessMeter::getLoudnessFixedLength() const
+{
+    //Make this realtime safe, take a snapshot copy of blocks
+
     const auto calculateLoudnessWithThreshold = [this](const std::optional<float>& threshold)
     {
         float channelAccum = 0.0f;
@@ -162,12 +197,52 @@ void LoudnessMeter::updateCurrentLoudness()
 
     if(gate)
     {
-        float relativeThreshold = calculateLoudnessWithThreshold(-70.0f);
-        currentLoudness = calculateLoudnessWithThreshold(relativeThreshold - 10.0f);
+        float relativeThreshold = calculateLoudnessWithThreshold(gateAbsoluteThreshold);
+        return calculateLoudnessWithThreshold(relativeThreshold - 10.0f);
     }
     else
     {
-        currentLoudness = calculateLoudnessWithThreshold(std::nullopt);
+        return calculateLoudnessWithThreshold(std::nullopt);
+    }
+}
+
+float LoudnessMeter::getLoudnessIntegrated() const
+{
+    const auto calculateLoudnessWithThreshold = [this](const std::optional<float>& threshold)
+    {
+        float channelAccum = 0.0f;
+
+        for(int channelIndex = 0; channelIndex < channelProcessors.size(); ++channelIndex)
+        {
+            float meanSquaresAccum = 0.0f;
+
+            const size_t firstBinIndex = threshold ? /*HERE*/ 0 : 0;
+
+            //THIS NEEDS TO BE WORKED OUT BASED ON LOWEST HIST POS FROM THRESH
+            std::for_each(blockHistogram.begin() + firstBinIndex, blockHistogram.end(), [&](const HistogramBlock& block)
+            {
+                if(block.numBlocks == 0)
+                {
+                    return;
+                }
+
+                meanSquaresAccum += (block.accumulatedChannelMeanSquares[channelIndex] / block.numBlocks);
+            });
+
+            channelAccum += channelProcessors[channelIndex].weighting * meanSquaresAccum;
+        }
+
+        return -0.691 + 10 * log10(channelAccum);
+    };
+
+    if(gate)
+    {
+        float relativeThreshold = calculateLoudnessWithThreshold(gateAbsoluteThreshold);
+        return calculateLoudnessWithThreshold(relativeThreshold - 10.0f);
+    }
+    else
+    {
+        return calculateLoudnessWithThreshold(std::nullopt);
     }
 }
 
