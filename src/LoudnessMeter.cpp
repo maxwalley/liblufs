@@ -80,6 +80,8 @@ void LoudnessMeter::process(const std::vector<std::vector<float>>& buffer)
             std::transform(channelBuffer.begin(), channelBuffer.begin() + numSamplesToAdd, channelCurrentBlock.begin() + currentBlockWritePos, std::bind(&ChannelProcessor::filterSample, &channelProcessor, std::placeholders::_1));
         }
 
+        currentBlockWritePos += numSamplesToAdd;
+
         //Check if we're ready to process
         if(currentBlockWritePos >= blockLengthSamples)
         {
