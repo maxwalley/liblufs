@@ -85,7 +85,9 @@ void LoudnessMeter::process(const std::vector<std::vector<float>>& buffer)
         //Check if we're ready to process
         if(currentBlockWritePos >= blockLengthSamples)
         {
+            //This needs to be worked out so that it doesn't allocate
             Block newBlock;
+            newBlock.channelMeanSquares.resize(buffer.size());
 
             for(size_t channelIndex = 0; channelIndex < buffer.size(); ++channelIndex)
             {
@@ -157,12 +159,7 @@ void LoudnessMeter::addBlock(const Block& newBlock)
     else
     {
         HistogramBlock& histBlock = blockHistogram[getHistogramBinIndexForLoudness(newBlock.loudness)];
-
-        for(int channelIndex = 0; channelIndex < channelProcessors.size(); ++channelIndex)
-        {
-            histBlock.accumulatedChannelMeanSquares[channelIndex] += newBlock.channelMeanSquares[channelIndex];
-            ++histBlock.numBlocks;
-        }
+        histBlock.addBlock(newBlock);
     }
 }
 
@@ -219,6 +216,7 @@ float LoudnessMeter::getLoudnessIntegrated() const
         for(int channelIndex = 0; channelIndex < channelProcessors.size(); ++channelIndex)
         {
             float meanSquaresAccum = 0.0f;
+            size_t numBlocksAccum = 0;
 
             const size_t firstBinIndex = threshold ? getHistogramBinIndexForLoudness(*threshold) : size_t(0);
 
@@ -230,10 +228,11 @@ float LoudnessMeter::getLoudnessIntegrated() const
                     return;
                 }
 
-                meanSquaresAccum += (block.accumulatedChannelMeanSquares[channelIndex] / block.numBlocks);
+                meanSquaresAccum += block.accumulatedChannelMeanSquares[channelIndex];
+                numBlocksAccum += block.numBlocks;
             });
 
-            channelAccum += channelProcessors[channelIndex].weighting * meanSquaresAccum;
+            channelAccum += channelProcessors[channelIndex].weighting * ((1.0f / float(numBlocksAccum)) * meanSquaresAccum);
         }
 
         return -0.691 + 10 * log10(channelAccum);
