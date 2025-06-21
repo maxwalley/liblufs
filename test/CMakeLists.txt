@@ -26,7 +26,7 @@ set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 add_subdirectory(googletest)
 
 add_executable(tests 
-    test_test.cpp
+    EBU3341_Test_Set.cpp
 )
 
 set_target_properties(tests PROPERTIES 
