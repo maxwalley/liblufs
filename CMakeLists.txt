@@ -13,11 +13,20 @@ option(BUILD_TESTS "Build tests" ON)
 
 add_library(lufs SHARED
     include/LoudnessMeter.h
+    include/TruePeakMeter.h
     src/LoudnessMeter.cpp
     src/ChannelProcessor.cpp
+    src/TruePeakMeter.cpp
 )
 
-target_include_directories(lufs PUBLIC include)
+target_include_directories(lufs PRIVATE 
+    include
+    ${CMAKE_BINARY_DIR}/libsamplerate/include
+)
+
+target_link_libraries(lufs PRIVATE
+    ${CMAKE_BINARY_DIR}/libsamplerate/lib/libsamplerate.a
+)
 
 set_target_properties(lufs PROPERTIES 
     LINKER_LANGUAGE CXX

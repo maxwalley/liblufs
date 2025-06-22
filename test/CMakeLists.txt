@@ -35,7 +35,10 @@ set_target_properties(tests PROPERTIES
     CXX_STANDARD_REQUIRED YES
 )
 
-target_include_directories(tests PRIVATE "dr_libs")
+target_include_directories(tests PRIVATE 
+    "dr_libs" 
+    "../include"
+)
 
 target_link_libraries(
     tests
