@@ -18,7 +18,7 @@ if(NOT IS_READABLE ${TEST_CONTENT_ZIP})
     message(FATAL_ERROR "Failed to locate test content, please refer to project documentation on how to obtain this")
 endif()
 
-file(ARCHIVE_EXTRACT INPUT ${TEST_CONTENT_ZIP} DESTINATION ${TEST_CONTENT_OUTPUT} VERBOSE)
+file(ARCHIVE_EXTRACT INPUT ${TEST_CONTENT_ZIP} DESTINATION ${TEST_CONTENT_OUTPUT})
 
 #Add google test and set it not to build googlemock
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
