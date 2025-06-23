@@ -27,9 +27,12 @@ TruePeakMeter::TruePeakMeter(double sampleRate, int numChannels, int bufferSize)
 
     sampleRateConverterState.data_in = conversionInputBuffer.data();
     sampleRateConverterState.data_out = conversionOutputBuffer.data();
-    sampleRateConverterState.input_frames = conversionInputBuffer.size();
-    sampleRateConverterState.output_frames = conversionOutputBuffer.size();
+    sampleRateConverterState.input_frames = expectedBufferSize;
+    sampleRateConverterState.output_frames = expectedBufferSize * conversionRatio;
     sampleRateConverterState.src_ratio = conversionRatio;
+    sampleRateConverterState.input_frames_used = 0;
+    sampleRateConverterState.output_frames_gen = 0;
+    sampleRateConverterState.end_of_input = 0;
 }
 
 TruePeakMeter::~TruePeakMeter()
@@ -81,7 +84,12 @@ void TruePeakMeter::process(const std::vector<float>& audio)
 
 float TruePeakMeter::getTruePeak() const
 {
-    return currentTruePeak;
+    if(currentTruePeakGain == 0.0f)
+    {
+        return 0.0f;
+    }
+
+    return 20.0f * log10(currentTruePeakGain);
 }
 
 void TruePeakMeter::process()
@@ -99,7 +107,7 @@ void TruePeakMeter::process()
 
     std::for_each(conversionOutputBuffer.begin(), conversionOutputBuffer.end(), [this](float convertedSample)
     {
-        currentTruePeak = std::max(std::abs(convertedSample) * outputGain, currentTruePeak);
+        currentTruePeakGain = std::max(std::abs(convertedSample) * outputGain, currentTruePeakGain);
     });
 }
 

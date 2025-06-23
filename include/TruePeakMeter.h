@@ -38,7 +38,7 @@ private:
     //12.04dB in gain
     static constexpr float outputGain = 3.999f;
 
-    float currentTruePeak = 0.0f;
+    float currentTruePeakGain = 0.0f;
 };
 
 }
