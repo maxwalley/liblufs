@@ -3,10 +3,104 @@
 namespace LUFS
 {
 
-TruePeakMeter::TruePeakMeter()
+TruePeakMeter::TruePeakMeter(double sampleRate, int numChannels, int bufferSize)  : expectedNumChannels(numChannels), expectedBufferSize(bufferSize)
 {
     int error;
-    src_new(SRC_SINC_MEDIUM_QUALITY, 1, &error);
+    sampleRateConverter = src_new(SRC_SINC_MEDIUM_QUALITY, numChannels, &error);
+
+    if(!sampleRateConverter || error != 0)
+    {
+        sampleRateConverter = nullptr;
+        throw(std::runtime_error("Failed to create sample rate converter"));
+    }
+
+    constexpr double targetSampleRate = 192000.0f;
+    const double conversionRatio = targetSampleRate / sampleRate;
+
+    if(src_is_valid_ratio(conversionRatio) == 0)
+    {
+        throw(std::runtime_error("Input sample rate is not supported"));
+    }
+
+    conversionInputBuffer.resize(expectedNumChannels * expectedBufferSize);
+    conversionOutputBuffer.resize(conversionInputBuffer.size() * conversionRatio);
+
+    sampleRateConverterState.data_in = conversionInputBuffer.data();
+    sampleRateConverterState.data_out = conversionOutputBuffer.data();
+    sampleRateConverterState.input_frames = conversionInputBuffer.size();
+    sampleRateConverterState.output_frames = conversionOutputBuffer.size();
+    sampleRateConverterState.src_ratio = conversionRatio;
+}
+
+TruePeakMeter::~TruePeakMeter()
+{
+    if(sampleRateConverter)
+    {
+        src_delete(sampleRateConverter);
+    }
+}
+
+void TruePeakMeter::process(const std::vector<std::vector<float>>& audio)
+{
+    assert(audio.size() == expectedNumChannels);
+    assert(std::all_of(audio.begin(), audio.end(), [this](const std::vector<float>& channelBuffer)
+    {
+        return channelBuffer.size() == expectedBufferSize;
+    }));
+
+    if(audio.size() == 0)
+    {
+        return;
+    }
+
+    //Copy to interleaved input buffer
+    for(int channelIndex = 0; channelIndex < expectedNumChannels; ++channelIndex)
+    {
+        const float* channelBuffer = audio[channelIndex].data();
+
+        for(int sampleIndex = 0; sampleIndex < expectedBufferSize; ++sampleIndex)
+        {
+            conversionInputBuffer[sampleIndex * expectedNumChannels + channelIndex] = *channelBuffer++ * inputGain;
+        }
+    }
+
+    process();
+}
+
+void TruePeakMeter::process(const std::vector<float>& audio)
+{
+    assert(audio.size() == expectedNumChannels * expectedBufferSize);
+
+    std::transform(audio.begin(), audio.end(), conversionInputBuffer.begin(), [this](float sample)
+    {
+        return sample * inputGain;
+    });
+
+    process();
+}
+
+float TruePeakMeter::getTruePeak() const
+{
+    return currentTruePeak;
+}
+
+void TruePeakMeter::process()
+{
+    if(!sampleRateConverter)
+    {
+        return;
+    }
+
+    if(src_process(sampleRateConverter, &sampleRateConverterState) != 0)
+    {
+        //SOME SORT OF ERROR
+        return;
+    }
+
+    std::for_each(conversionOutputBuffer.begin(), conversionOutputBuffer.end(), [this](float convertedSample)
+    {
+        currentTruePeak = std::max(std::abs(convertedSample) * outputGain, currentTruePeak);
+    });
 }
 
 }
