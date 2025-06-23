@@ -319,7 +319,7 @@ TEST(EBU3341_Test_Set, Test_15)
 
     float maxTruePeak = std::numeric_limits<float>::lowest();
 
-    std::chrono::milliseconds longestProcessDuration(0);
+    std::chrono::microseconds longestProcessDuration(0);
 
     const auto audioBufferCallback = [&meter, &maxTruePeak, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
     {
@@ -333,7 +333,7 @@ TEST(EBU3341_Test_Set, Test_15)
 
             if(endTime - startTime > longestProcessDuration)
             {
-                longestProcessDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+                longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
             }
 
             maxTruePeak = std::max(meter.getTruePeak(), maxTruePeak);
@@ -342,7 +342,7 @@ TEST(EBU3341_Test_Set, Test_15)
 
     processFile(*audioFile, audioBufferCallback);
 
-    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << "ms" << std::endl;
+    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << " microseconds" << std::endl;
 
     ASSERT_LE(maxTruePeak, -5.8f);
     ASSERT_GE(maxTruePeak, -6.4f);
@@ -363,7 +363,7 @@ TEST(EBU3341_Test_Set, Test_16)
 
     float maxTruePeak = std::numeric_limits<float>::lowest();
 
-    std::chrono::milliseconds longestProcessDuration(0);
+    std::chrono::microseconds longestProcessDuration(0);
 
     const auto audioBufferCallback = [&meter, &maxTruePeak, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
     {
@@ -377,7 +377,7 @@ TEST(EBU3341_Test_Set, Test_16)
 
             if(endTime - startTime > longestProcessDuration)
             {
-                longestProcessDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+                longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
             }
 
             maxTruePeak = std::max(meter.getTruePeak(), maxTruePeak);
@@ -386,7 +386,7 @@ TEST(EBU3341_Test_Set, Test_16)
 
     processFile(*audioFile, audioBufferCallback);
 
-    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << "ms" << std::endl;
+    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << " microseconds" << std::endl;
 
     ASSERT_LE(maxTruePeak, -5.8f);
     ASSERT_GE(maxTruePeak, -6.4f);
@@ -407,7 +407,7 @@ TEST(EBU3341_Test_Set, Test_17)
 
     float maxTruePeak = std::numeric_limits<float>::lowest();
 
-    std::chrono::milliseconds longestProcessDuration(0);
+    std::chrono::microseconds longestProcessDuration(0);
 
     const auto audioBufferCallback = [&meter, &maxTruePeak, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
     {
@@ -421,7 +421,7 @@ TEST(EBU3341_Test_Set, Test_17)
 
             if(endTime - startTime > longestProcessDuration)
             {
-                longestProcessDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+                longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
             }
 
             maxTruePeak = std::max(meter.getTruePeak(), maxTruePeak);
@@ -430,7 +430,7 @@ TEST(EBU3341_Test_Set, Test_17)
 
     processFile(*audioFile, audioBufferCallback);
 
-    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << "ms" << std::endl;
+    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << " microseconds" << std::endl;
 
     ASSERT_LE(maxTruePeak, -5.8f);
     ASSERT_GE(maxTruePeak, -6.4f);
@@ -451,7 +451,7 @@ TEST(EBU3341_Test_Set, Test_18)
 
     float maxTruePeak = std::numeric_limits<float>::lowest();
 
-    std::chrono::milliseconds longestProcessDuration(0);
+    std::chrono::microseconds longestProcessDuration(0);
 
     const auto audioBufferCallback = [&meter, &maxTruePeak, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
     {
@@ -465,7 +465,7 @@ TEST(EBU3341_Test_Set, Test_18)
 
             if(endTime - startTime > longestProcessDuration)
             {
-                longestProcessDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+                longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
             }
 
             maxTruePeak = std::max(meter.getTruePeak(), maxTruePeak);
@@ -474,7 +474,7 @@ TEST(EBU3341_Test_Set, Test_18)
 
     processFile(*audioFile, audioBufferCallback);
 
-    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << "ms" << std::endl;
+    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << " microseconds" << std::endl;
 
     ASSERT_LE(maxTruePeak, -5.8f);
     ASSERT_GE(maxTruePeak, -6.4f);
@@ -495,7 +495,7 @@ TEST(EBU3341_Test_Set, Test_19)
 
     float maxTruePeak = std::numeric_limits<float>::lowest();
 
-    std::chrono::milliseconds longestProcessDuration(0);
+    std::chrono::microseconds longestProcessDuration(0);
 
     const auto audioBufferCallback = [&meter, &maxTruePeak, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
     {
@@ -509,7 +509,7 @@ TEST(EBU3341_Test_Set, Test_19)
 
             if(endTime - startTime > longestProcessDuration)
             {
-                longestProcessDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+                longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
             }
 
             maxTruePeak = std::max(meter.getTruePeak(), maxTruePeak);
@@ -518,7 +518,7 @@ TEST(EBU3341_Test_Set, Test_19)
 
     processFile(*audioFile, audioBufferCallback);
 
-    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << "ms" << std::endl;
+    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << " microseconds" << std::endl;
 
     ASSERT_LE(maxTruePeak, 3.2f);
     ASSERT_GE(maxTruePeak, 2.6f);
@@ -539,7 +539,7 @@ TEST(EBU3341_Test_Set, Test_20)
 
     float maxTruePeak = std::numeric_limits<float>::lowest();
 
-    std::chrono::milliseconds longestProcessDuration(0);
+    std::chrono::microseconds longestProcessDuration(0);
 
     const auto audioBufferCallback = [&meter, &maxTruePeak, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
     {
@@ -553,7 +553,7 @@ TEST(EBU3341_Test_Set, Test_20)
 
             if(endTime - startTime > longestProcessDuration)
             {
-                longestProcessDuration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+                longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
             }
 
             maxTruePeak = std::max(meter.getTruePeak(), maxTruePeak);
@@ -562,7 +562,7 @@ TEST(EBU3341_Test_Set, Test_20)
 
     processFile(*audioFile, audioBufferCallback);
 
-    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << "ms" << std::endl;
+    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << " microseconds" << std::endl;
 
     ASSERT_LE(maxTruePeak, 0.2f);
     ASSERT_GE(maxTruePeak, -0.4f);

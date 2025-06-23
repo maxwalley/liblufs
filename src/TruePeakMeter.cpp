@@ -6,7 +6,7 @@ namespace LUFS
 TruePeakMeter::TruePeakMeter(double sampleRate, int numChannels, int bufferSize)  : expectedNumChannels(numChannels), expectedBufferSize(bufferSize)
 {
     int error;
-    sampleRateConverter = src_new(SRC_SINC_MEDIUM_QUALITY, numChannels, &error);
+    sampleRateConverter = src_new(SRC_SINC_FASTEST, numChannels, &error);
 
     if(!sampleRateConverter || error != 0)
     {
