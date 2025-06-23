@@ -38,6 +38,7 @@ set_target_properties(tests PROPERTIES
 target_include_directories(tests PRIVATE 
     "dr_libs" 
     "../include"
+    ${CMAKE_BINARY_DIR}/libsamplerate/include
 )
 
 target_link_libraries(
