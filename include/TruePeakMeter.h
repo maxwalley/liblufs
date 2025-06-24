@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include <span>
 #include <cassert>
 
 #include "samplerate.h"
@@ -11,12 +11,13 @@ namespace LUFS
 class TruePeakMeter
 {
 public:
-    TruePeakMeter(double sampleRate, int numChannels, int bufferSize);
+    //Buffers can come in smaller than this but must never exceed this number of samples per channel
+    TruePeakMeter(double sampleRate, int numChannels, int maxBufferSize);
     ~TruePeakMeter();
 
     //Deinterleaved and Interleaved
-    void process(const std::vector<std::vector<float>>& audio);
-    void process(const std::vector<float>& audio);
+    void process(std::span<const float* const> audio, int numSamplesPerChannel);
+    void process(std::span<const float> audio);
 
     float getTruePeak() const;
 
@@ -24,7 +25,9 @@ private:
     void process();
 
     const int expectedNumChannels;
-    const int expectedBufferSize;
+    const int bufferSizeLimit;
+    static constexpr double targetSampleRate = 192000.0;
+    const double sampleRateConversionRatio;
 
     SRC_STATE* sampleRateConverter = nullptr;
     SRC_DATA sampleRateConverterState;

@@ -3,7 +3,7 @@
 namespace LUFS
 {
 
-TruePeakMeter::TruePeakMeter(double sampleRate, int numChannels, int bufferSize)  : expectedNumChannels(numChannels), expectedBufferSize(bufferSize)
+TruePeakMeter::TruePeakMeter(double sampleRate, int numChannels, int maxBufferSize)  : expectedNumChannels(numChannels), bufferSizeLimit(maxBufferSize), sampleRateConversionRatio(targetSampleRate / sampleRate)
 {
     int error;
     sampleRateConverter = src_new(SRC_SINC_FASTEST, numChannels, &error);
@@ -14,22 +14,18 @@ TruePeakMeter::TruePeakMeter(double sampleRate, int numChannels, int bufferSize)
         throw(std::runtime_error("Failed to create sample rate converter"));
     }
 
-    constexpr double targetSampleRate = 192000.0f;
-    const double conversionRatio = targetSampleRate / sampleRate;
-
-    if(src_is_valid_ratio(conversionRatio) == 0)
+    if(src_is_valid_ratio(sampleRateConversionRatio) == 0)
     {
         throw(std::runtime_error("Input sample rate is not supported"));
     }
 
-    conversionInputBuffer.resize(expectedNumChannels * expectedBufferSize);
-    conversionOutputBuffer.resize(conversionInputBuffer.size() * conversionRatio);
+    //Set buffers to the max size they can be
+    conversionInputBuffer.resize(expectedNumChannels * bufferSizeLimit);
+    conversionOutputBuffer.resize(conversionInputBuffer.size() * sampleRateConversionRatio);
 
     sampleRateConverterState.data_in = conversionInputBuffer.data();
     sampleRateConverterState.data_out = conversionOutputBuffer.data();
-    sampleRateConverterState.input_frames = expectedBufferSize;
-    sampleRateConverterState.output_frames = expectedBufferSize * conversionRatio;
-    sampleRateConverterState.src_ratio = conversionRatio;
+    sampleRateConverterState.src_ratio = sampleRateConversionRatio;
     sampleRateConverterState.input_frames_used = 0;
     sampleRateConverterState.output_frames_gen = 0;
     sampleRateConverterState.end_of_input = 0;
@@ -43,36 +39,45 @@ TruePeakMeter::~TruePeakMeter()
     }
 }
 
-void TruePeakMeter::process(const std::vector<std::vector<float>>& audio)
+void TruePeakMeter::process(std::span<const float* const> audio, int numSamplesPerChannel)
 {
     assert(audio.size() == expectedNumChannels);
-    assert(std::all_of(audio.begin(), audio.end(), [this](const std::vector<float>& channelBuffer)
-    {
-        return channelBuffer.size() == expectedBufferSize;
-    }));
+    assert(numSamplesPerChannel <= bufferSizeLimit);
 
     if(audio.size() == 0)
     {
         return;
     }
 
+    //Set conversion size
+    sampleRateConverterState.input_frames = numSamplesPerChannel;
+    sampleRateConverterState.output_frames = numSamplesPerChannel * sampleRateConversionRatio;
+
     //Copy to interleaved input buffer
     for(int channelIndex = 0; channelIndex < expectedNumChannels; ++channelIndex)
     {
-        const float* channelBuffer = audio[channelIndex].data();
+        const float* const channelBuffer = audio[channelIndex];
 
-        for(int sampleIndex = 0; sampleIndex < expectedBufferSize; ++sampleIndex)
+        for(int sampleIndex = 0; sampleIndex < numSamplesPerChannel; ++sampleIndex)
         {
-            conversionInputBuffer[sampleIndex * expectedNumChannels + channelIndex] = *channelBuffer++ * inputGain;
+            conversionInputBuffer[sampleIndex * expectedNumChannels + channelIndex] = channelBuffer[sampleIndex] * inputGain;
         }
     }
 
     process();
 }
 
-void TruePeakMeter::process(const std::vector<float>& audio)
+void TruePeakMeter::process(std::span<const float> audio)
 {
-    assert(audio.size() == expectedNumChannels * expectedBufferSize);
+    assert(audio.size() % expectedNumChannels == 0);
+
+    const size_t bufferSize = audio.size() / expectedNumChannels;
+
+    assert(bufferSize <= bufferSizeLimit);
+
+    //Set conversion size
+    sampleRateConverterState.input_frames = static_cast<int32_t>(bufferSize);
+    sampleRateConverterState.output_frames = static_cast<int32_t>(bufferSize) * sampleRateConversionRatio;
 
     std::transform(audio.begin(), audio.end(), conversionInputBuffer.begin(), [this](float sample)
     {
