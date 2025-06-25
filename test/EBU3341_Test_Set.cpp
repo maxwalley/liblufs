@@ -181,12 +181,25 @@ TEST(EBU3341_Test_Set, Test_3)
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
     integratedMeter.prepare();
 
-    const auto audioBufferCallback = [&integratedMeter](const std::vector<std::vector<float>>& buffer)
+    std::chrono::microseconds longestProcessDuration(0);
+
+    const auto audioBufferCallback = [&integratedMeter, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
     {
+        const auto startTime = std::chrono::high_resolution_clock::now();
+
         integratedMeter.process(buffer);
+
+        const auto endTime = std::chrono::high_resolution_clock::now();
+
+        if(endTime - startTime > longestProcessDuration)
+        {
+            longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+        }
     };
 
     processFile(*audioFile, audioBufferCallback, 1024);
+
+    std::cout << "Longest meter processing time: " << longestProcessDuration.count() << " microseconds" << std::endl;
 
     const float integratedLoudness = integratedMeter.getLoudness();
 
@@ -208,12 +221,25 @@ TEST(EBU3341_Test_Set, Test_4)
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
     integratedMeter.prepare();
 
-    const auto audioBufferCallback = [&integratedMeter](const std::vector<std::vector<float>>& buffer)
+    std::chrono::microseconds longestProcessDuration(0);
+
+    const auto audioBufferCallback = [&integratedMeter, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
     {
+        const auto startTime = std::chrono::high_resolution_clock::now();
+
         integratedMeter.process(buffer);
+
+        const auto endTime = std::chrono::high_resolution_clock::now();
+
+        if(endTime - startTime > longestProcessDuration)
+        {
+            longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+        }
     };
 
     processFile(*audioFile, audioBufferCallback, 1024);
+
+    std::cout << "Longest meter processing time: " << longestProcessDuration.count() << " microseconds" << std::endl;
 
     const float integratedLoudness = integratedMeter.getLoudness();
 
@@ -235,12 +261,25 @@ TEST(EBU3341_Test_Set, Test_5)
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
     integratedMeter.prepare();
 
-    const auto audioBufferCallback = [&integratedMeter](const std::vector<std::vector<float>>& buffer)
+    std::chrono::microseconds longestProcessDuration(0);
+
+    const auto audioBufferCallback = [&integratedMeter, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
     {
+        const auto startTime = std::chrono::high_resolution_clock::now();
+
         integratedMeter.process(buffer);
+
+        const auto endTime = std::chrono::high_resolution_clock::now();
+
+        if(endTime - startTime > longestProcessDuration)
+        {
+            longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+        }
     };
 
     processFile(*audioFile, audioBufferCallback, 1024);
+
+    std::cout << "Longest meter processing time: " << longestProcessDuration.count() << " microseconds" << std::endl;
 
     const float integratedLoudness = integratedMeter.getLoudness();
 
@@ -262,12 +301,25 @@ TEST(EBU3341_Test_Set, Test_6)
     LUFS::LoudnessMeter integratedMeter(create5point0Config(), true);
     integratedMeter.prepare();
 
-    const auto audioBufferCallback = [&integratedMeter](const std::vector<std::vector<float>>& buffer)
+    std::chrono::microseconds longestProcessDuration(0);
+
+    const auto audioBufferCallback = [&integratedMeter, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
     {
+        const auto startTime = std::chrono::high_resolution_clock::now();
+
         integratedMeter.process(buffer);
+
+        const auto endTime = std::chrono::high_resolution_clock::now();
+
+        if(endTime - startTime > longestProcessDuration)
+        {
+            longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+        }
     };
 
     processFile(*audioFile, audioBufferCallback, 1024);
+
+    std::cout << "Longest meter processing time: " << longestProcessDuration.count() << " microseconds" << std::endl;
 
     const float integratedLoudness = integratedMeter.getLoudness();
 
@@ -289,12 +341,25 @@ TEST(EBU3341_Test_Set, Test_7)
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
     integratedMeter.prepare();
 
-    const auto audioBufferCallback = [&integratedMeter](const std::vector<std::vector<float>>& buffer)
+    std::chrono::microseconds longestProcessDuration(0);
+
+    const auto audioBufferCallback = [&integratedMeter, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
     {
+        const auto startTime = std::chrono::high_resolution_clock::now();
+
         integratedMeter.process(buffer);
+
+        const auto endTime = std::chrono::high_resolution_clock::now();
+
+        if(endTime - startTime > longestProcessDuration)
+        {
+            longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+        }
     };
 
     processFile(*audioFile, audioBufferCallback, 1024);
+
+    std::cout << "Longest meter processing time: " << longestProcessDuration.count() << " microseconds" << std::endl;
 
     const float integratedLoudness = integratedMeter.getLoudness();
 
