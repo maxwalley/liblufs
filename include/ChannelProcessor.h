@@ -15,9 +15,9 @@ public:
     ChannelProcessor(float channelWeighting, size_t blockSizeSamples);
     ~ChannelProcessor();
     
-    void prepare();
-
     float filterSample(float sample);
+
+    void reset();
 
     float getCurrentBlockMeanSquares() const;
 

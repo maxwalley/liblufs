@@ -16,9 +16,12 @@ public:
     LoudnessMeter(const std::vector<Channel>& channels, bool gated, const std::optional<std::chrono::milliseconds>& windowLength = std::nullopt);
     ~LoudnessMeter();
     
-    void prepare();
     void process(const std::vector<std::vector<float>>& buffer);
     
+    //This is not threadsafe with process calls
+    void reset();
+
+    //This is threadsafe with process calls
     float getLoudness() const;
 
 private:

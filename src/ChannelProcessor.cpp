@@ -6,6 +6,8 @@ namespace LUFS
 ChannelProcessor::ChannelProcessor(float channelWeighting, size_t blockSizeSamples)  : weighting(channelWeighting), currentBlockData(blockSizeSamples, 0.0f)
 {
     initialiseFilters();
+
+    std::fill(currentBlockData.begin(), currentBlockData.end(), 0.0f);
 }
 
 ChannelProcessor::~ChannelProcessor()
@@ -13,17 +15,17 @@ ChannelProcessor::~ChannelProcessor()
     
 }
 
-void ChannelProcessor::prepare()
+float ChannelProcessor::filterSample(float sample)
+{
+    return filt2.processSample(filt1.processSample(sample));
+}
+
+void ChannelProcessor::reset()
 {
     filt1.reset();
     filt2.reset();
 
     std::fill(currentBlockData.begin(), currentBlockData.end(), 0.0f);
-}
-
-float ChannelProcessor::filterSample(float sample)
-{
-    return filt2.processSample(filt1.processSample(sample));
 }
 
 float ChannelProcessor::getCurrentBlockMeanSquares() const

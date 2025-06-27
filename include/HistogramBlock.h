@@ -9,6 +9,11 @@ namespace LUFS
 
 struct HistogramBlock
 {
+    HistogramBlock(size_t numChannels)  : accumulatedChannelMeanSquares(numChannels, 0.0f)
+    {
+
+    }
+
     void addBlock(const Block& block)
     {
         if(block.channelMeanSquares.size() != accumulatedChannelMeanSquares.size())

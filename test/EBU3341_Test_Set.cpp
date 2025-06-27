@@ -99,9 +99,6 @@ TEST(EBU3341_Test_Set, Test_1)
     LUFS::LoudnessMeter momentaryMeter(createStereoConfig(), false, std::chrono::milliseconds(400));
     LUFS::LoudnessMeter shortTermMeter(createStereoConfig(), false, std::chrono::milliseconds(3000));
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
-    momentaryMeter.prepare();
-    shortTermMeter.prepare();
-    integratedMeter.prepare();
 
     const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
@@ -140,9 +137,6 @@ TEST(EBU3341_Test_Set, Test_2)
     LUFS::LoudnessMeter momentaryMeter(createStereoConfig(), false, std::chrono::milliseconds(400));
     LUFS::LoudnessMeter shortTermMeter(createStereoConfig(), false, std::chrono::milliseconds(3000));
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
-    momentaryMeter.prepare();
-    shortTermMeter.prepare();
-    integratedMeter.prepare();
 
     const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
@@ -179,7 +173,6 @@ TEST(EBU3341_Test_Set, Test_3)
     }
 
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
-    integratedMeter.prepare();
 
     std::chrono::microseconds longestProcessDuration(0);
 
@@ -219,7 +212,6 @@ TEST(EBU3341_Test_Set, Test_4)
     }
 
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
-    integratedMeter.prepare();
 
     std::chrono::microseconds longestProcessDuration(0);
 
@@ -259,7 +251,6 @@ TEST(EBU3341_Test_Set, Test_5)
     }
 
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
-    integratedMeter.prepare();
 
     std::chrono::microseconds longestProcessDuration(0);
 
@@ -299,7 +290,6 @@ TEST(EBU3341_Test_Set, Test_6)
     }
 
     LUFS::LoudnessMeter integratedMeter(create5point0Config(), true);
-    integratedMeter.prepare();
 
     std::chrono::microseconds longestProcessDuration(0);
 
@@ -339,7 +329,6 @@ TEST(EBU3341_Test_Set, Test_7)
     }
 
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
-    integratedMeter.prepare();
 
     std::chrono::microseconds longestProcessDuration(0);
 

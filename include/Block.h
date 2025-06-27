@@ -7,6 +7,11 @@ namespace LUFS
 
 struct Block
 {
+    Block(size_t numChannels)  : channelMeanSquares(numChannels, 0.0f)
+    {
+
+    }
+
     Block& operator=(const Block& other)
     {
         if(channelMeanSquares.size() == other.channelMeanSquares.size())

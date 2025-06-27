@@ -3,7 +3,7 @@
 namespace LUFS
 {
 
-LoudnessMeter::LoudnessMeter(const std::vector<Channel>& channels, bool gated, const std::optional<std::chrono::milliseconds>& windowLength)  : gate(gated), integrated(!windowLength)
+LoudnessMeter::LoudnessMeter(const std::vector<Channel>& channels, bool gated, const std::optional<std::chrono::milliseconds>& windowLength)  : gate{gated}, integrated{!windowLength}
 {
     std::transform(channels.begin(), channels.end(), std::back_insert_iterator(channelProcessors), [](const Channel& channel)
     {
@@ -18,14 +18,15 @@ LoudnessMeter::LoudnessMeter(const std::vector<Channel>& channels, bool gated, c
             throw(std::runtime_error("Integration time must be more than " + std::to_string(blockLengthMs)));
         }
 
-        blocks.resize(std::floor((windowLength->count() - blockLengthMs) / float(overlapLengthMs)) + 1);
+        const size_t numBlocks = std::floor((windowLength->count() - blockLengthMs) / float(overlapLengthMs)) + 1;
+        blocks.resize(numBlocks, Block{channelProcessors.size()});
     }
 
     //Integrated
     else
     {
         constexpr size_t numHistogramElements = (1.0f / integratedHistogramResolution) * (highestIntegratedValue - lowestIntegratedValue);
-        blockHistogram.resize(numHistogramElements);
+        blockHistogram.resize(numHistogramElements, HistogramBlock{channelProcessors.size()});
 
         histogramMappingSlope = (numHistogramElements - 1.0f) / (highestIntegratedValue - lowestIntegratedValue);
     }
@@ -34,21 +35,6 @@ LoudnessMeter::LoudnessMeter(const std::vector<Channel>& channels, bool gated, c
 LoudnessMeter::~LoudnessMeter()
 {
     
-}
-
-void LoudnessMeter::prepare()
-{
-    std::for_each(channelProcessors.begin(), channelProcessors.end(), [](ChannelProcessor& processor)
-    {
-        processor.prepare();
-    });
-
-    std::fill(blocks.begin(), blocks.end(), Block{std::vector<float>(channelProcessors.size(), 0.0f), 0.0f});
-    blocksWritePos = 0;
-
-    std::fill(blockHistogram.begin(), blockHistogram.end(), HistogramBlock{std::vector<float>(channelProcessors.size(), 0.0f), 0});
-
-    currentBlockWritePos = 0;
 }
 
 void LoudnessMeter::process(const std::vector<std::vector<float>>& buffer)
@@ -86,8 +72,7 @@ void LoudnessMeter::process(const std::vector<std::vector<float>>& buffer)
         if(currentBlockWritePos >= blockLengthSamples)
         {
             //This needs to be worked out so that it doesn't allocate
-            Block newBlock;
-            newBlock.channelMeanSquares.resize(buffer.size());
+            Block newBlock{buffer.size()};
 
             for(size_t channelIndex = 0; channelIndex < buffer.size(); ++channelIndex)
             {
@@ -124,6 +109,25 @@ void LoudnessMeter::process(const std::vector<std::vector<float>>& buffer)
             numSamplesToAdd = 0;
         }
     }
+}
+
+void LoudnessMeter::reset()
+{
+    std::for_each(channelProcessors.begin(), channelProcessors.end(), [](ChannelProcessor& processor)
+    {
+        processor.reset();
+    });
+
+    if(!integrated)
+    {
+        std::fill(blocks.begin(), blocks.end(), Block{channelProcessors.size()});
+    }
+    else
+    {
+        std::fill(blockHistogram.begin(), blockHistogram.end(), HistogramBlock{channelProcessors.size()});
+    }
+
+    currentBlockWritePos = 0;
 }
 
 float LoudnessMeter::getLoudness() const
