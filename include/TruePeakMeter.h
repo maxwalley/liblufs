@@ -19,6 +19,10 @@ public:
     void process(std::span<const float* const> audio, int numSamplesPerChannel);
     void process(std::span<const float> audio);
 
+    //This is not threadsafe with process calls
+    void reset();
+
+    //This is threadsafe with process calls
     float getTruePeak() const;
 
 private:

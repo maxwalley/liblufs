@@ -87,6 +87,11 @@ void TruePeakMeter::process(std::span<const float> audio)
     process();
 }
 
+void TruePeakMeter::reset()
+{
+    currentTruePeakGain = 0.0f;
+}
+
 float TruePeakMeter::getTruePeak() const
 {
     if(currentTruePeakGain == 0.0f)
