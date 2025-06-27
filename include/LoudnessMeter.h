@@ -29,7 +29,7 @@ public:
 private:
     void processCurrentBlock();
     void calculateBlockLoudness(Block& block) const;
-    void addBlock(const Block& newBlock);
+    void addCurrentBlock();
 
     size_t getHistogramBinIndexForLoudness(float loudness) const;
 
@@ -40,6 +40,8 @@ private:
     const bool integrated;
 
     std::vector<ChannelProcessor> channelProcessors;
+
+    Block processBlock;
 
     //For fixed time applications
     std::vector<Block> blocks;

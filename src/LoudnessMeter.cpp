@@ -3,7 +3,7 @@
 namespace LUFS
 {
     
-LoudnessMeter::LoudnessMeter(const std::vector<Channel>& channels, bool gated, const std::optional<std::chrono::milliseconds>& windowLength)  : gate{gated}, integrated{!windowLength}
+LoudnessMeter::LoudnessMeter(const std::vector<Channel>& channels, bool gated, const std::optional<std::chrono::milliseconds>& windowLength)  : gate{gated}, integrated{!windowLength}, processBlock{channels.size()}
 {
     std::transform(channels.begin(), channels.end(), std::back_insert_iterator(channelProcessors), [](const Channel& channel)
     {
@@ -151,16 +151,13 @@ float LoudnessMeter::getLoudness() const
 
 void LoudnessMeter::processCurrentBlock()
 {
-    //This needs to be worked out so that it doesn't allocate
-    Block newBlock{channelProcessors.size()};
-    
     for(size_t channelIndex = 0; channelIndex < channelProcessors.size(); ++channelIndex)
     {
         ChannelProcessor& channelProcessor = channelProcessors[channelIndex];
         std::vector<float>& channelCurrentBlock = channelProcessor.currentBlockData; 
         
         //Process mean squares for channel
-        newBlock.channelMeanSquares[channelIndex] = channelProcessor.getCurrentBlockMeanSquares();
+        processBlock.channelMeanSquares[channelIndex] = channelProcessor.getCurrentBlockMeanSquares();
         
         //Move current block back by overlap samples
         std::copy(channelCurrentBlock.begin() + overlapLengthSamples, channelCurrentBlock.end(), channelCurrentBlock.begin());
@@ -168,10 +165,10 @@ void LoudnessMeter::processCurrentBlock()
     
     if(gate || integrated)
     {
-        calculateBlockLoudness(newBlock);
+        calculateBlockLoudness(processBlock);
     }
     
-    addBlock(newBlock);
+    addCurrentBlock();
     
     //Move write pos back to overlap samples
     currentBlockWritePos = blockLengthSamples - overlapLengthSamples;
@@ -191,11 +188,11 @@ void LoudnessMeter::calculateBlockLoudness(Block& block) const
     block.loudness = -0.691f + 10 * std::log10(currentTotal);
 }
 
-void LoudnessMeter::addBlock(const Block& newBlock)
+void LoudnessMeter::addCurrentBlock()
 {
     if(!integrated)
     {
-        blocks[blocksWritePos] = newBlock;
+        blocks[blocksWritePos] = processBlock;
         
         if(++blocksWritePos >= blocks.size())
         {
@@ -204,8 +201,8 @@ void LoudnessMeter::addBlock(const Block& newBlock)
     }
     else
     {
-        HistogramBlock& histBlock = blockHistogram[getHistogramBinIndexForLoudness(newBlock.loudness)];
-        histBlock.addBlock(newBlock);
+        HistogramBlock& histBlock = blockHistogram[getHistogramBinIndexForLoudness(processBlock.loudness)];
+        histBlock.addBlock(processBlock);
     }
 }
 
