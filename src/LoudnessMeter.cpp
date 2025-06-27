@@ -80,7 +80,49 @@ void LoudnessMeter::process(std::span<const float* const> audio, int numSamplesP
 
 void LoudnessMeter::process(std::span<const float> audio)
 {
+    assert(audio.size() % channelProcessors.size() == 0);
+
+    size_t numSamplesPerChannel = audio.size() / channelProcessors.size();
     
+    size_t numSamplesToAdd = std::min(blockLengthSamples - currentBlockWritePos, static_cast<size_t>(numSamplesPerChannel));
+    int bufferReadPos = 0;
+    
+    while(numSamplesToAdd > 0)
+    {
+        //Copy the samples to the channel buffers filtering each one
+        for(size_t channelIndex = 0; channelIndex < channelProcessors.size(); ++channelIndex)
+        {
+            ChannelProcessor& channelProcessor = channelProcessors[channelIndex];
+            std::vector<float>& channelCurrentBlock = channelProcessor.currentBlockData; 
+            
+            for(size_t sampleIndex = 0; sampleIndex < numSamplesToAdd; ++sampleIndex)
+            {
+                const size_t fullSampleIndex = sampleIndex + bufferReadPos;
+                const float sample = audio[fullSampleIndex * channelProcessors.size() + channelIndex];
+                channelCurrentBlock[currentBlockWritePos + sampleIndex] = channelProcessor.filterSample(sample);
+            }
+        }
+        
+        currentBlockWritePos += numSamplesToAdd;
+        
+        //Check if we're ready to process
+        if(currentBlockWritePos >= blockLengthSamples)
+        {
+            processCurrentBlock();
+        }
+        
+        //Check if we can add/process more data
+        bufferReadPos += numSamplesToAdd;
+        
+        if(bufferReadPos < numSamplesPerChannel)
+        {
+            numSamplesToAdd = std::min(blockLengthSamples - currentBlockWritePos, static_cast<size_t>(numSamplesPerChannel - bufferReadPos));
+        }
+        else
+        {
+            numSamplesToAdd = 0;
+        }
+    }
 }
 
 void LoudnessMeter::reset()

@@ -99,7 +99,7 @@ TEST(EBU3341_Test_Set, Test_1)
     const int maxBufferSize = 1024;
     const int numChannels = 2;
 
-    std::vector<const float*> channelBuffers{numChannels, nullptr};
+    std::vector<float> interleavedBuffer(numChannels * maxBufferSize, 0.0f);
 
     LUFS::LoudnessMeter momentaryMeter(createStereoConfig(), false, std::chrono::milliseconds(400));
     LUFS::LoudnessMeter shortTermMeter(createStereoConfig(), false, std::chrono::milliseconds(3000));
@@ -107,14 +107,24 @@ TEST(EBU3341_Test_Set, Test_1)
 
     const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
-        std::transform(buffer.begin(), buffer.end(), channelBuffers.begin(), [](const std::vector<float>& channelData)
-        {
-            return channelData.data();
-        });
+        const size_t numSamples = buffer[0].size();
 
-        momentaryMeter.process(channelBuffers, buffer[0].size());
-        shortTermMeter.process(channelBuffers, buffer[0].size());
-        integratedMeter.process(channelBuffers, buffer[0].size());
+        interleavedBuffer.resize(numChannels * numSamples);
+
+        for(int channelIndex = 0; channelIndex < numChannels; ++channelIndex)
+        {
+            const float* channelData = buffer[channelIndex].data();
+
+            for(int sampleIndex = 0; sampleIndex < numSamples; ++sampleIndex)
+            {
+                interleavedBuffer[sampleIndex * numChannels + channelIndex] = *channelData;
+                ++channelData;
+            }
+        }
+
+        momentaryMeter.process(interleavedBuffer);
+        shortTermMeter.process(interleavedBuffer);
+        integratedMeter.process(interleavedBuffer);
     };
 
     processFile(*audioFile, audioBufferCallback, maxBufferSize);
@@ -195,7 +205,7 @@ TEST(EBU3341_Test_Set, Test_3)
     const int maxBufferSize = 1024;
     const int numChannels = 2;
 
-    std::vector<const float*> channelBuffers{numChannels, nullptr};
+    std::vector<float> interleavedBuffer(numChannels * maxBufferSize, 0.0f);
 
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
 
@@ -203,14 +213,24 @@ TEST(EBU3341_Test_Set, Test_3)
 
     const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
-        std::transform(buffer.begin(), buffer.end(), channelBuffers.begin(), [](const std::vector<float>& channelData)
+        const size_t numSamples = buffer[0].size();
+
+        interleavedBuffer.resize(numChannels * numSamples);
+
+        for(int channelIndex = 0; channelIndex < numChannels; ++channelIndex)
         {
-            return channelData.data();
-        });
+            const float* channelData = buffer[channelIndex].data();
+
+            for(int sampleIndex = 0; sampleIndex < numSamples; ++sampleIndex)
+            {
+                interleavedBuffer[sampleIndex * numChannels + channelIndex] = *channelData;
+                ++channelData;
+            }
+        }
 
         const auto startTime = std::chrono::high_resolution_clock::now();
 
-        integratedMeter.process(channelBuffers, buffer[0].size());
+        integratedMeter.process(interleavedBuffer);
 
         const auto endTime = std::chrono::high_resolution_clock::now();
 
@@ -293,7 +313,7 @@ TEST(EBU3341_Test_Set, Test_5)
     const int maxBufferSize = 1024;
     const int numChannels = 2;
 
-    std::vector<const float*> channelBuffers{numChannels, nullptr};
+    std::vector<float> interleavedBuffer(numChannels * maxBufferSize, 0.0f);
 
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
 
@@ -301,14 +321,24 @@ TEST(EBU3341_Test_Set, Test_5)
 
     const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
-        std::transform(buffer.begin(), buffer.end(), channelBuffers.begin(), [](const std::vector<float>& channelData)
+        const size_t numSamples = buffer[0].size();
+
+        interleavedBuffer.resize(numChannels * numSamples);
+
+        for(int channelIndex = 0; channelIndex < numChannels; ++channelIndex)
         {
-            return channelData.data();
-        });
+            const float* channelData = buffer[channelIndex].data();
+
+            for(int sampleIndex = 0; sampleIndex < numSamples; ++sampleIndex)
+            {
+                interleavedBuffer[sampleIndex * numChannels + channelIndex] = *channelData;
+                ++channelData;
+            }
+        }
 
         const auto startTime = std::chrono::high_resolution_clock::now();
 
-        integratedMeter.process(channelBuffers, buffer[0].size());
+        integratedMeter.process(interleavedBuffer);
 
         const auto endTime = std::chrono::high_resolution_clock::now();
 
@@ -391,7 +421,7 @@ TEST(EBU3341_Test_Set, Test_7)
     const int maxBufferSize = 1024;
     const int numChannels = 2;
 
-    std::vector<const float*> channelBuffers{numChannels, nullptr};
+    std::vector<float> interleavedBuffer(numChannels * maxBufferSize, 0.0f);
 
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
 
@@ -399,14 +429,24 @@ TEST(EBU3341_Test_Set, Test_7)
 
     const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
-        std::transform(buffer.begin(), buffer.end(), channelBuffers.begin(), [](const std::vector<float>& channelData)
+        const size_t numSamples = buffer[0].size();
+
+        interleavedBuffer.resize(numChannels * numSamples);
+
+        for(int channelIndex = 0; channelIndex < numChannels; ++channelIndex)
         {
-            return channelData.data();
-        });
+            const float* channelData = buffer[channelIndex].data();
+
+            for(int sampleIndex = 0; sampleIndex < numSamples; ++sampleIndex)
+            {
+                interleavedBuffer[sampleIndex * numChannels + channelIndex] = *channelData;
+                ++channelData;
+            }
+        }
 
         const auto startTime = std::chrono::high_resolution_clock::now();
 
-        integratedMeter.process(channelBuffers, buffer[0].size());
+        integratedMeter.process(interleavedBuffer);
 
         const auto endTime = std::chrono::high_resolution_clock::now();
 
