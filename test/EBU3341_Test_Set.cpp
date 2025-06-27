@@ -96,18 +96,28 @@ TEST(EBU3341_Test_Set, Test_1)
         FAIL() << "Failed to open test file: " << testFileName;
     }
 
+    const int maxBufferSize = 1024;
+    const int numChannels = 2;
+
+    std::vector<const float*> channelBuffers{numChannels, nullptr};
+
     LUFS::LoudnessMeter momentaryMeter(createStereoConfig(), false, std::chrono::milliseconds(400));
     LUFS::LoudnessMeter shortTermMeter(createStereoConfig(), false, std::chrono::milliseconds(3000));
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
 
     const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
-        momentaryMeter.process(buffer);
-        shortTermMeter.process(buffer);
-        integratedMeter.process(buffer);
+        std::transform(buffer.begin(), buffer.end(), channelBuffers.begin(), [](const std::vector<float>& channelData)
+        {
+            return channelData.data();
+        });
+
+        momentaryMeter.process(channelBuffers, buffer[0].size());
+        shortTermMeter.process(channelBuffers, buffer[0].size());
+        integratedMeter.process(channelBuffers, buffer[0].size());
     };
 
-    processFile(*audioFile, audioBufferCallback, 1024);
+    processFile(*audioFile, audioBufferCallback, maxBufferSize);
 
     const float momentaryLoudness = momentaryMeter.getLoudness();
     const float shortTermLoudness = shortTermMeter.getLoudness();
@@ -134,15 +144,25 @@ TEST(EBU3341_Test_Set, Test_2)
         FAIL() << "Failed to open test file: " << testFileName;
     }
 
+    const int maxBufferSize = 1024;
+    const int numChannels = 2;
+
+    std::vector<const float*> channelBuffers{numChannels, nullptr};
+
     LUFS::LoudnessMeter momentaryMeter(createStereoConfig(), false, std::chrono::milliseconds(400));
     LUFS::LoudnessMeter shortTermMeter(createStereoConfig(), false, std::chrono::milliseconds(3000));
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
 
     const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
-        momentaryMeter.process(buffer);
-        shortTermMeter.process(buffer);
-        integratedMeter.process(buffer);
+        std::transform(buffer.begin(), buffer.end(), channelBuffers.begin(), [](const std::vector<float>& channelData)
+        {
+            return channelData.data();
+        });
+
+        momentaryMeter.process(channelBuffers, buffer[0].size());
+        shortTermMeter.process(channelBuffers, buffer[0].size());
+        integratedMeter.process(channelBuffers, buffer[0].size());
     };
 
     processFile(*audioFile, audioBufferCallback, 1024);
@@ -172,15 +192,25 @@ TEST(EBU3341_Test_Set, Test_3)
         FAIL() << "Failed to open test file: " << testFileName;
     }
 
+    const int maxBufferSize = 1024;
+    const int numChannels = 2;
+
+    std::vector<const float*> channelBuffers{numChannels, nullptr};
+
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
 
     std::chrono::microseconds longestProcessDuration(0);
 
-    const auto audioBufferCallback = [&integratedMeter, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
+    const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
+        std::transform(buffer.begin(), buffer.end(), channelBuffers.begin(), [](const std::vector<float>& channelData)
+        {
+            return channelData.data();
+        });
+
         const auto startTime = std::chrono::high_resolution_clock::now();
 
-        integratedMeter.process(buffer);
+        integratedMeter.process(channelBuffers, buffer[0].size());
 
         const auto endTime = std::chrono::high_resolution_clock::now();
 
@@ -211,15 +241,25 @@ TEST(EBU3341_Test_Set, Test_4)
         FAIL() << "Failed to open test file: " << testFileName;
     }
 
+    const int maxBufferSize = 1024;
+    const int numChannels = 2;
+
+    std::vector<const float*> channelBuffers{numChannels, nullptr};
+
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
 
     std::chrono::microseconds longestProcessDuration(0);
 
-    const auto audioBufferCallback = [&integratedMeter, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
+    const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
+        std::transform(buffer.begin(), buffer.end(), channelBuffers.begin(), [](const std::vector<float>& channelData)
+        {
+            return channelData.data();
+        });
+
         const auto startTime = std::chrono::high_resolution_clock::now();
 
-        integratedMeter.process(buffer);
+        integratedMeter.process(channelBuffers, buffer[0].size());
 
         const auto endTime = std::chrono::high_resolution_clock::now();
 
@@ -250,15 +290,25 @@ TEST(EBU3341_Test_Set, Test_5)
         FAIL() << "Failed to open test file: " << testFileName;
     }
 
+    const int maxBufferSize = 1024;
+    const int numChannels = 2;
+
+    std::vector<const float*> channelBuffers{numChannels, nullptr};
+
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
 
     std::chrono::microseconds longestProcessDuration(0);
 
-    const auto audioBufferCallback = [&integratedMeter, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
+    const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
+        std::transform(buffer.begin(), buffer.end(), channelBuffers.begin(), [](const std::vector<float>& channelData)
+        {
+            return channelData.data();
+        });
+
         const auto startTime = std::chrono::high_resolution_clock::now();
 
-        integratedMeter.process(buffer);
+        integratedMeter.process(channelBuffers, buffer[0].size());
 
         const auto endTime = std::chrono::high_resolution_clock::now();
 
@@ -289,15 +339,25 @@ TEST(EBU3341_Test_Set, Test_6)
         FAIL() << "Failed to open test file: " << testFileName;
     }
 
+    const int maxBufferSize = 1024;
+    const int numChannels = 5;
+
+    std::vector<const float*> channelBuffers{numChannels, nullptr};
+
     LUFS::LoudnessMeter integratedMeter(create5point0Config(), true);
 
     std::chrono::microseconds longestProcessDuration(0);
 
-    const auto audioBufferCallback = [&integratedMeter, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
+    const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
+        std::transform(buffer.begin(), buffer.end(), channelBuffers.begin(), [](const std::vector<float>& channelData)
+        {
+            return channelData.data();
+        });
+
         const auto startTime = std::chrono::high_resolution_clock::now();
 
-        integratedMeter.process(buffer);
+        integratedMeter.process(channelBuffers, buffer[0].size());
 
         const auto endTime = std::chrono::high_resolution_clock::now();
 
@@ -328,15 +388,25 @@ TEST(EBU3341_Test_Set, Test_7)
         FAIL() << "Failed to open test file: " << testFileName;
     }
 
+    const int maxBufferSize = 1024;
+    const int numChannels = 2;
+
+    std::vector<const float*> channelBuffers{numChannels, nullptr};
+
     LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
 
     std::chrono::microseconds longestProcessDuration(0);
 
-    const auto audioBufferCallback = [&integratedMeter, &longestProcessDuration](const std::vector<std::vector<float>>& buffer)
+    const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
+        std::transform(buffer.begin(), buffer.end(), channelBuffers.begin(), [](const std::vector<float>& channelData)
+        {
+            return channelData.data();
+        });
+
         const auto startTime = std::chrono::high_resolution_clock::now();
 
-        integratedMeter.process(buffer);
+        integratedMeter.process(channelBuffers, buffer[0].size());
 
         const auto endTime = std::chrono::high_resolution_clock::now();
 

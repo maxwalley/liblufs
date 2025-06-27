@@ -16,7 +16,9 @@ public:
     LoudnessMeter(const std::vector<Channel>& channels, bool gated, const std::optional<std::chrono::milliseconds>& windowLength = std::nullopt);
     ~LoudnessMeter();
     
-    void process(const std::vector<std::vector<float>>& buffer);
+    //Deinterleaved and interleaved
+    void process(std::span<const float* const> audio, int numSamplesPerChannel);
+    void process(std::span<const float> audio);
     
     //This is not threadsafe with process calls
     void reset();
@@ -25,6 +27,7 @@ public:
     float getLoudness() const;
 
 private:
+    void processCurrentBlock();
     void calculateBlockLoudness(Block& block) const;
     void addBlock(const Block& newBlock);
 
