@@ -1,5 +1,5 @@
 # liblufs - Live Laugh LUF
-A C++ library for measuring loudness according to EBU R128
+A C++ library for measuring loudness according to ITU 1770-5 and EBU R128
 
 Build Instructions:
 ```
