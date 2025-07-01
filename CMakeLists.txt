@@ -12,9 +12,11 @@ ExternalProject_Add(samplerate
 option(BUILD_TESTS "Build tests" ON)
 
 add_library(lufs SHARED
-    include/LoudnessMeter.h
+    include/FixedTermLoudnessMeter.h
+    include/IntegratedLoudnessMeter.h
     include/TruePeakMeter.h
-    src/LoudnessMeter.cpp
+    src/FixedTermLoudnessMeter.cpp
+    src/IntegratedLoudnessMeter.cpp
     src/ChannelProcessor.cpp
     src/TruePeakMeter.cpp
 )

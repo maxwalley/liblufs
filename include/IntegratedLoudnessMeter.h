@@ -7,14 +7,11 @@
 namespace LUFS
 {
 
-class LoudnessMeter
+class IntegratedLoudnessMeter
 {
 public:
-    /*
-    Leave windowLength as nullopt for integrated loudness
-    */
-    LoudnessMeter(const std::vector<Channel>& channels, bool gated, const std::optional<std::chrono::milliseconds>& windowLength = std::nullopt);
-    ~LoudnessMeter();
+    IntegratedLoudnessMeter(const std::vector<Channel>& channels);
+    ~IntegratedLoudnessMeter();
     
     //Deinterleaved and interleaved
     void process(std::span<const float* const> audio, int numSamplesPerChannel);
@@ -29,25 +26,14 @@ public:
 private:
     void processCurrentBlock();
     void calculateBlockLoudness(Block& block) const;
-    void addCurrentBlock();
 
     size_t getHistogramBinIndexForLoudness(float loudness) const;
-
-    float getLoudnessFixedLength() const;
-    float getLoudnessIntegrated() const;
-
-    const bool gate;
-    const bool integrated;
 
     std::vector<ChannelProcessor> channelProcessors;
 
     Block processBlock;
 
-    //For fixed time applications
-    std::vector<Block> blocks;
-    size_t blocksWritePos = 0;
-
-    //For integrated metering
+    //For integrated metering only
     std::vector<HistogramBlock> blockHistogram;
     float histogramMappingSlope = 0.0f;
 
