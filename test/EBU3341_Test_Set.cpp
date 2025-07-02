@@ -6,7 +6,8 @@
 #define DR_WAV_IMPLEMENTATION
 #include "dr_wav.h"
 
-#include "LoudnessMeter.h"
+#include "FixedTermLoudnessMeter.h"
+#include "IntegratedLoudnessMeter.h"
 #include "TruePeakMeter.h"
 
 std::optional<std::filesystem::path> getTestContentPath()
@@ -101,9 +102,9 @@ TEST(EBU3341_Test_Set, Test_1)
 
     std::vector<float> interleavedBuffer(numChannels * maxBufferSize, 0.0f);
 
-    LUFS::LoudnessMeter momentaryMeter(createStereoConfig(), false, std::chrono::milliseconds(400));
-    LUFS::LoudnessMeter shortTermMeter(createStereoConfig(), false, std::chrono::milliseconds(3000));
-    LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
+    LUFS::FixedTermLoudnessMeter momentaryMeter(createStereoConfig(), std::chrono::milliseconds(400));
+    LUFS::FixedTermLoudnessMeter shortTermMeter(createStereoConfig(), std::chrono::milliseconds(3000));
+    LUFS::IntegratedLoudnessMeter integratedMeter(createStereoConfig());
 
     const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
@@ -159,9 +160,9 @@ TEST(EBU3341_Test_Set, Test_2)
 
     std::vector<const float*> channelBuffers{numChannels, nullptr};
 
-    LUFS::LoudnessMeter momentaryMeter(createStereoConfig(), false, std::chrono::milliseconds(400));
-    LUFS::LoudnessMeter shortTermMeter(createStereoConfig(), false, std::chrono::milliseconds(3000));
-    LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
+    LUFS::FixedTermLoudnessMeter momentaryMeter(createStereoConfig(), std::chrono::milliseconds(400));
+    LUFS::FixedTermLoudnessMeter shortTermMeter(createStereoConfig(), std::chrono::milliseconds(3000));
+    LUFS::IntegratedLoudnessMeter integratedMeter(createStereoConfig());
 
     const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
     {
@@ -207,7 +208,7 @@ TEST(EBU3341_Test_Set, Test_3)
 
     std::vector<float> interleavedBuffer(numChannels * maxBufferSize, 0.0f);
 
-    LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
+    LUFS::IntegratedLoudnessMeter integratedMeter(createStereoConfig());
 
     std::chrono::microseconds longestProcessDuration(0);
 
@@ -266,7 +267,7 @@ TEST(EBU3341_Test_Set, Test_4)
 
     std::vector<const float*> channelBuffers{numChannels, nullptr};
 
-    LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
+    LUFS::IntegratedLoudnessMeter integratedMeter(createStereoConfig());
 
     std::chrono::microseconds longestProcessDuration(0);
 
@@ -315,7 +316,7 @@ TEST(EBU3341_Test_Set, Test_5)
 
     std::vector<float> interleavedBuffer(numChannels * maxBufferSize, 0.0f);
 
-    LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
+    LUFS::IntegratedLoudnessMeter integratedMeter(createStereoConfig());
 
     std::chrono::microseconds longestProcessDuration(0);
 
@@ -374,7 +375,7 @@ TEST(EBU3341_Test_Set, Test_6)
 
     std::vector<const float*> channelBuffers{numChannels, nullptr};
 
-    LUFS::LoudnessMeter integratedMeter(create5point0Config(), true);
+    LUFS::IntegratedLoudnessMeter integratedMeter(create5point0Config());
 
     std::chrono::microseconds longestProcessDuration(0);
 
@@ -423,7 +424,7 @@ TEST(EBU3341_Test_Set, Test_7)
 
     std::vector<float> interleavedBuffer(numChannels * maxBufferSize, 0.0f);
 
-    LUFS::LoudnessMeter integratedMeter(createStereoConfig(), true);
+    LUFS::IntegratedLoudnessMeter integratedMeter(createStereoConfig());
 
     std::chrono::microseconds longestProcessDuration(0);
 
@@ -464,6 +465,66 @@ TEST(EBU3341_Test_Set, Test_7)
 
     ASSERT_LE(integratedLoudness, -22.9f);
     ASSERT_GE(integratedLoudness, -23.1f);
+}
+
+TEST(EBU3341_Test_Set, Test_9)
+{
+    const std::string testFileName = "seq-3341-9-24bit.wav";
+
+    std::unique_ptr<drwav> audioFile = openTestFile(testFileName);
+
+    if(!audioFile)
+    {
+        FAIL() << "Failed to open test file: " << testFileName;
+    }
+
+    const int maxBufferSize = 1024;
+    const int numChannels = 2;
+    const int constantTimeThresholdSamples = 48000 * 3;
+
+    std::vector<const float*> channelBuffers{numChannels, nullptr};
+
+    LUFS::FixedTermLoudnessMeter shortTermMeter(createStereoConfig(), std::chrono::milliseconds(3000));
+
+    std::chrono::microseconds longestProcessDuration(0);
+
+    size_t totalNumSamplesProcessed = 0;
+
+    const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
+    {
+        const int numSamples = buffer[0].size();
+
+        std::transform(buffer.begin(), buffer.end(), channelBuffers.begin(), [](const std::vector<float>& channelData)
+        {
+            return channelData.data();
+        });
+
+        const auto startTime = std::chrono::high_resolution_clock::now();
+
+        shortTermMeter.process(channelBuffers, numSamples);
+
+        const auto endTime = std::chrono::high_resolution_clock::now();
+
+        totalNumSamplesProcessed += numSamples;
+
+        //Stabibility Check
+        if(totalNumSamplesProcessed >= constantTimeThresholdSamples)
+        {
+            const float shortTermLoudness = shortTermMeter.getLoudness();
+
+            ASSERT_LE(shortTermLoudness, -22.9f);
+            ASSERT_GE(shortTermLoudness, -23.1f);
+        }
+
+        if(endTime - startTime > longestProcessDuration)
+        {
+            longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+        }
+    };
+
+    processFile(*audioFile, audioBufferCallback, 1024);
+
+    std::cout << "Longest meter processing time: " << longestProcessDuration.count() << " microseconds" << std::endl;
 }
 
 TEST(EBU3341_Test_Set, Test_15)
