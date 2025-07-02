@@ -699,6 +699,61 @@ TEST(EBU3341_Test_Set, Test_12)
     std::cout << "Longest meter processing time: " << longestProcessDuration.count() << " microseconds" << std::endl;
 }
 
+TEST(EBU3341_Test_Set, Test_13)
+{
+    for(int testIndex = 0; testIndex < 20; ++testIndex)
+    {
+        const std::string testFileName = "seq-3341-10-" + std::to_string(testIndex + 1) + "-24bit.wav";
+        
+        std::unique_ptr<drwav> audioFile = openTestFile(testFileName);
+        
+        if(!audioFile)
+        {
+            FAIL() << "Failed to open test file: " << testFileName;
+        }
+        
+        const int maxBufferSize = 1024;
+        const int numChannels = 2;
+        
+        std::vector<const float*> channelBuffers{numChannels, nullptr};
+        
+        LUFS::FixedTermLoudnessMeter momentaryMeter(createStereoConfig(), std::chrono::milliseconds(400));
+        
+        std::chrono::microseconds longestProcessDuration(0);
+        float maxLoudness = std::numeric_limits<float>::lowest();
+        
+        const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
+        {
+            const int numSamples = buffer[0].size();
+            
+            std::transform(buffer.begin(), buffer.end(), channelBuffers.begin(), [](const std::vector<float>& channelData)
+            {
+                return channelData.data();
+            });
+            
+            const auto startTime = std::chrono::high_resolution_clock::now();
+            
+            momentaryMeter.process(channelBuffers, numSamples);
+            
+            const auto endTime = std::chrono::high_resolution_clock::now();
+            
+            if(endTime - startTime > longestProcessDuration)
+            {
+                longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+            }
+
+            maxLoudness = std::max(maxLoudness, momentaryMeter.getLoudness());
+        };
+        
+        processFile(*audioFile, audioBufferCallback, 1024);
+
+        ASSERT_LE(maxLoudness, -22.9f) << testFileName;
+        ASSERT_GE(maxLoudness, -23.1f) << testFileName;
+
+        std::cout << "Longest meter processing time: " << longestProcessDuration.count() << " microseconds" << std::endl;
+    }
+}
+
 TEST(EBU3341_Test_Set, Test_15)
 {
     const std::string testFileName = "seq-3341-15-24bit.wav.wav";
