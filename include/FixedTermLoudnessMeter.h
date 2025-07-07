@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <span>
 
 #include "ChannelProcessor.h"
 

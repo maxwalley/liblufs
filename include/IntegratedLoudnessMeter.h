@@ -3,6 +3,7 @@
 #include <functional>
 #include <optional>
 #include <cmath>
+#include <span>
 
 #include "ChannelProcessor.h"
 #include "Block.h"

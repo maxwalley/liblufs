@@ -1,8 +1,8 @@
 #pragma once
 
-#include <span>
 #include <cassert>
 #include <vector>
+#include <cmath>
 
 #include "Channel.h"
 #include "Filter.h"

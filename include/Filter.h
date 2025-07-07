@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <span>
 
 namespace LUFS
 {
