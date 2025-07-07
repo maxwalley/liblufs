@@ -1191,3 +1191,162 @@ TEST(EBU3341_Test_Set, Test_20)
     ASSERT_LE(maxTruePeak, 0.2f);
     ASSERT_GE(maxTruePeak, -0.4f);
 }
+
+TEST(EBU3341_Test_Set, Test_21)
+{
+    const std::string testFileName = "seq-3341-21-24bit.wav.wav";
+    
+    std::unique_ptr<drwav> audioFile = openTestFile(testFileName);
+    
+    if(!audioFile)
+    {
+        FAIL() << "Failed to open test file: " << testFileName;
+    }
+    
+    const int maxBufferSize = 1024;
+    const int numChannels = 2;
+    
+    std::vector<float> interleavedBuffer(numChannels * maxBufferSize);
+    LUFS::TruePeakMeter meter(48000.0, numChannels, maxBufferSize);
+    
+    float maxTruePeak = std::numeric_limits<float>::lowest();
+    
+    std::chrono::microseconds longestProcessDuration(0);
+    
+    const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
+    {
+        for(int channelIndex = 0; channelIndex < numChannels; ++channelIndex)
+        {
+            for(int sampleIndex = 0; sampleIndex < buffer[0].size(); ++sampleIndex)
+            {
+                interleavedBuffer[sampleIndex * numChannels + channelIndex] = buffer[channelIndex][sampleIndex];
+            }
+        }
+        
+        const auto startTime = std::chrono::high_resolution_clock::now();
+        
+        meter.process({interleavedBuffer.data(), interleavedBuffer.size()});
+        
+        const auto endTime = std::chrono::high_resolution_clock::now();
+        
+        if(endTime - startTime > longestProcessDuration)
+        {
+            longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+        }
+        
+        maxTruePeak = std::max(meter.getTruePeak(), maxTruePeak);
+    };
+    
+    processFile(*audioFile, audioBufferCallback, maxBufferSize);
+    
+    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << " microseconds" << std::endl;
+    
+    ASSERT_LE(maxTruePeak, 0.2f);
+    ASSERT_GE(maxTruePeak, -0.4f);
+}
+
+TEST(EBU3341_Test_Set, Test_22)
+{
+    const std::string testFileName = "seq-3341-22-24bit.wav.wav";
+    
+    std::unique_ptr<drwav> audioFile = openTestFile(testFileName);
+    
+    if(!audioFile)
+    {
+        FAIL() << "Failed to open test file: " << testFileName;
+    }
+    
+    const int maxBufferSize = 1024;
+    const int numChannels = 2;
+    
+    std::vector<float> interleavedBuffer(numChannels * maxBufferSize);
+    LUFS::TruePeakMeter meter(48000.0, numChannels, maxBufferSize);
+    
+    float maxTruePeak = std::numeric_limits<float>::lowest();
+    
+    std::chrono::microseconds longestProcessDuration(0);
+    
+    const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
+    {
+        for(int channelIndex = 0; channelIndex < numChannels; ++channelIndex)
+        {
+            for(int sampleIndex = 0; sampleIndex < buffer[0].size(); ++sampleIndex)
+            {
+                interleavedBuffer[sampleIndex * numChannels + channelIndex] = buffer[channelIndex][sampleIndex];
+            }
+        }
+        
+        const auto startTime = std::chrono::high_resolution_clock::now();
+        
+        meter.process({interleavedBuffer.data(), interleavedBuffer.size()});
+        
+        const auto endTime = std::chrono::high_resolution_clock::now();
+        
+        if(endTime - startTime > longestProcessDuration)
+        {
+            longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+        }
+        
+        maxTruePeak = std::max(meter.getTruePeak(), maxTruePeak);
+    };
+    
+    processFile(*audioFile, audioBufferCallback, maxBufferSize);
+    
+    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << " microseconds" << std::endl;
+    
+    ASSERT_LE(maxTruePeak, 0.2f);
+    ASSERT_GE(maxTruePeak, -0.4f);
+}
+
+TEST(EBU3341_Test_Set, Test_23)
+{
+    const std::string testFileName = "seq-3341-23-24bit.wav.wav";
+    
+    std::unique_ptr<drwav> audioFile = openTestFile(testFileName);
+    
+    if(!audioFile)
+    {
+        FAIL() << "Failed to open test file: " << testFileName;
+    }
+    
+    const int maxBufferSize = 1024;
+    const int numChannels = 2;
+    
+    std::vector<float> interleavedBuffer(numChannels * maxBufferSize);
+    LUFS::TruePeakMeter meter(48000.0, numChannels, maxBufferSize);
+    
+    float maxTruePeak = std::numeric_limits<float>::lowest();
+    
+    std::chrono::microseconds longestProcessDuration(0);
+    
+    const auto audioBufferCallback = [&](const std::vector<std::vector<float>>& buffer)
+    {
+        for(int channelIndex = 0; channelIndex < numChannels; ++channelIndex)
+        {
+            for(int sampleIndex = 0; sampleIndex < buffer[0].size(); ++sampleIndex)
+            {
+                interleavedBuffer[sampleIndex * numChannels + channelIndex] = buffer[channelIndex][sampleIndex];
+            }
+        }
+        
+        const auto startTime = std::chrono::high_resolution_clock::now();
+        
+        meter.process({interleavedBuffer.data(), interleavedBuffer.size()});
+        
+        const auto endTime = std::chrono::high_resolution_clock::now();
+        
+        if(endTime - startTime > longestProcessDuration)
+        {
+            longestProcessDuration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+        }
+        
+        maxTruePeak = std::max(meter.getTruePeak(), maxTruePeak);
+    };
+    
+    processFile(*audioFile, audioBufferCallback, maxBufferSize);
+    
+    std::cout << "Longest true peak calculation: " << longestProcessDuration.count() << " microseconds" << std::endl;
+    
+    ASSERT_LE(maxTruePeak, 0.2f);
+    ASSERT_GE(maxTruePeak, -0.4f);
+}
