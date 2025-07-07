@@ -75,7 +75,7 @@ float FixedTermLoudnessMeter::getLoudness() const
         accumulatedChannels += processor.getCurrentBlockMeanSquares() * processor.weighting;
     });
 
-    return -0.691f + 10.0f * log10(accumulatedChannels);
+    return -0.691f + 10.0f * std::log10(accumulatedChannels);
 }
 
 int FixedTermLoudnessMeter::getBlockLengthSamples(const std::chrono::milliseconds& windowLength) const
