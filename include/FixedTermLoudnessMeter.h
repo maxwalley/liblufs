@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 #include "ChannelProcessor.h"
 
 namespace LUFS

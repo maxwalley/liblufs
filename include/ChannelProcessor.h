@@ -2,6 +2,7 @@
 
 #include <span>
 #include <cassert>
+#include <vector>
 
 #include "Channel.h"
 #include "Filter.h"
