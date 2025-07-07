@@ -2,6 +2,11 @@
 
 #include <span>
 #include <cassert>
+#include <vector>
+#include <stdexcept>
+#include <cstdint>
+#include <algorithm>
+#include <cmath>
 
 #include "samplerate.h"
 

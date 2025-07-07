@@ -99,7 +99,7 @@ float TruePeakMeter::getTruePeak() const
         return 0.0f;
     }
 
-    return 20.0f * log10(currentTruePeakGain);
+    return 20.0f * std::log10(currentTruePeakGain);
 }
 
 void TruePeakMeter::process()
