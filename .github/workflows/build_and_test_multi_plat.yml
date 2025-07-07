@@ -56,6 +56,7 @@ jobs:
         cmake -B ${{ steps.strings.outputs.build_dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DBUILD_TESTS=OFF
         ${{ github.workspace }}
 
     - name: Build
