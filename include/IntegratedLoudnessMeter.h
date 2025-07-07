@@ -4,6 +4,7 @@
 #include <optional>
 #include <cmath>
 #include <span>
+#include <iterator>
 
 #include "ChannelProcessor.h"
 #include "Block.h"
