@@ -1,5 +1,9 @@
 #pragma once
 
+#include <functional>
+#include <optional>
+#include <cmath>
+
 #include "ChannelProcessor.h"
 #include "Block.h"
 #include "HistogramBlock.h"

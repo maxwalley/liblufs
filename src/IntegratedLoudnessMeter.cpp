@@ -149,7 +149,7 @@ float IntegratedLoudnessMeter::getLoudness() const
             channelAccum += channelProcessors[channelIndex].weighting * ((1.0f / float(numBlocksAccum)) * meanSquaresAccum);
         }
         
-        return -0.691 + 10 * log10(channelAccum);
+        return -0.691 + 10 * std::log10(channelAccum);
     };
     
     float relativeThreshold = calculateLoudnessWithThreshold(gateAbsoluteThreshold);
