@@ -26,9 +26,15 @@ target_include_directories(lufs PRIVATE
     ${CMAKE_BINARY_DIR}/libsamplerate/include
 )
 
-target_link_libraries(lufs PRIVATE
-    ${CMAKE_BINARY_DIR}/libsamplerate/lib/libsamplerate.a
-)
+if(WIN32)
+    target_link_libraries(lufs PRIVATE
+    	${CMAKE_BINARY_DIR}/libsamplerate/lib/samplerate.lib
+    )
+elseif(UNIX)
+    target_link_libraries(lufs PRIVATE
+    	${CMAKE_BINARY_DIR}/libsamplerate/lib/libsamplerate.a
+    )
+endif()
 
 set_target_properties(lufs PROPERTIES 
     LINKER_LANGUAGE CXX
