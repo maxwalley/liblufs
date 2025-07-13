@@ -12,7 +12,9 @@
 
 std::optional<std::filesystem::path> getTestContentPath()
 {
-    const std::filesystem::path path = std::filesystem::current_path() / "test_content";
+    const std::filesystem::path path = std::filesystem::current_path() / "../_deps/ebuloudnesstestset-src";
+    std::cout << path << std::endl;
+
     return std::filesystem::exists(path) ? path : std::optional<std::filesystem::path>(std::nullopt);
 }
 
