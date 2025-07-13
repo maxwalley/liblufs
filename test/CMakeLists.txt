@@ -1,24 +1,13 @@
-#Download the test files
-set(TEST_CONTENT_URL https://tech.ebu.ch/files/live/sites/tech/files/shared/testmaterial/ebu-loudness-test-setv05.zip)
-set(TEST_CONTENT_ZIP "${CMAKE_CURRENT_SOURCE_DIR}/ebu-loudness-test-setv05.zip")
-set(TEST_CONTENT_OUTPUT "${CMAKE_BINARY_DIR}/test_content")
+include(FetchContent)
 
-#This does not currently work due to the ebu keeping their test set in a cloudflare server
-#[[execute_process(
-    COMMAND curl -L -A "liblufs cmake downloader (technical testing)" -o ${TEST_CONTENT_ZIP} ${TEST_CONTENT_URL}
-    RESULT_VARIABLE curl_result
-    ERROR_VARIABLE curl_error
+#Download the test files
+FetchContent_Declare(
+  ebuLoudnessTestSet
+  URL      https://github.com/maxwalley/EBULoudnessTestSetV5/releases/download/EBU_Loudness_Test_Set_v5/ebu-loudness-test-setv05.zip
+  URL_HASH SHA256=9cc500b4df83f7c21855c74dce795ef5209a752bf884253ae57d0ce512efb062
 )
 
-if(NOT curl_result EQUAL 0)
-    message(FATAL_ERROR "Curl failed to download EBU test files: ${curl_error}")
-endif()]]
-
-if(NOT IS_READABLE ${TEST_CONTENT_ZIP})
-    message(FATAL_ERROR "Failed to locate test content, please refer to project documentation on how to obtain this")
-endif()
-
-file(ARCHIVE_EXTRACT INPUT ${TEST_CONTENT_ZIP} DESTINATION ${TEST_CONTENT_OUTPUT})
+FetchContent_MakeAvailable(ebuLoudnessTestSet)
 
 #Add google test and set it not to build googlemock
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
@@ -52,5 +41,5 @@ gtest_discover_tests(tests)
 
 install(TARGETS tests)
 
-install(DIRECTORY ${TEST_CONTENT_OUTPUT}
+install(DIRECTORY ${ebuloudnesstestset_SOURCE_DIR}
     DESTINATION share)
