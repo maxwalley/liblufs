@@ -13,6 +13,6 @@ make install
 ## Testing
 Tests are automatically built, to turn them off add the option ```-DBUILD_TESTS=OFF``` to the cmake line
 
-Testing requires downloading the test dataset from https://tech.ebu.ch/publications/ebu_loudness_test_set and placing in the test directory of the project. The EBU has this file behind a cloudflare layer that prevents automated downloading.
+Permission has kindly been given by the EBU for this project to host the test files used in EBU TECH 3341 and EBU TECH 3342, please find the original files here: https://tech.ebu.ch/publications/ebu_loudness_test_set 
 
 The test project must then be run from the same location as the test content folder.
