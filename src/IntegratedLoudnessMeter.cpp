@@ -146,7 +146,7 @@ float IntegratedLoudnessMeter::getLoudness() const
                 numBlocksAccum += block.numBlocks;
             });
             
-            channelAccum += channelProcessors[channelIndex].weighting * ((1.0f / float(numBlocksAccum)) * meanSquaresAccum);
+            channelAccum += channelProcessors[channelIndex].getWeighting() * ((1.0f / float(numBlocksAccum)) * meanSquaresAccum);
         }
         
         return -0.691 + 10 * std::log10(channelAccum);
@@ -187,7 +187,7 @@ void IntegratedLoudnessMeter::calculateBlockLoudness(Block& block) const
     
     for(size_t channelIndex = 0; channelIndex < channelProcessors.size(); ++channelIndex)
     {
-        currentTotal += channelProcessors[channelIndex].weighting * block.channelMeanSquares[channelIndex]; 
+        currentTotal += channelProcessors[channelIndex].getWeighting() * block.channelMeanSquares[channelIndex]; 
     }
     
     block.loudness = -0.691f + 10 * std::log10(currentTotal);

@@ -10,9 +10,9 @@ ChannelProcessor::ChannelProcessor(float channelWeighting, size_t blockSizeSampl
     std::fill(currentBlockData.begin(), currentBlockData.end(), 0.0f);
 }
 
-ChannelProcessor::~ChannelProcessor()
+float ChannelProcessor::getWeighting() const
 {
-    
+    return weighting;
 }
 
 float ChannelProcessor::filterSample(float sample)

@@ -14,21 +14,22 @@ class ChannelProcessor
 {
 public:
     ChannelProcessor(float channelWeighting, size_t blockSizeSamples);
-    ~ChannelProcessor();
     
+    float getWeighting() const;
+
     float filterSample(float sample);
 
     void reset();
 
     float getCurrentBlockMeanSquares() const;
 
-    const float weighting;
-
     std::vector<float> currentBlockData;
 
 private:
     void initialiseFilters();
     
+    float weighting;
+
     Filter filt1;
     Filter filt2;
 };

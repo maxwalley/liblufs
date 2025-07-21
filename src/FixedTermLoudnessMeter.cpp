@@ -72,7 +72,7 @@ float FixedTermLoudnessMeter::getLoudness() const
 
     std::for_each(channelProcessors.begin(), channelProcessors.end(), [&accumulatedChannels](const ChannelProcessor& processor)
     {
-        accumulatedChannels += processor.getCurrentBlockMeanSquares() * processor.weighting;
+        accumulatedChannels += processor.getCurrentBlockMeanSquares() * processor.getWeighting();
     });
 
     return -0.691f + 10.0f * std::log10(accumulatedChannels);
