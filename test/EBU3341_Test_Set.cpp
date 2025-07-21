@@ -31,7 +31,7 @@ std::unique_ptr<drwav> openTestFile(std::string_view testFileName)
     
     std::unique_ptr<drwav> audioFile = std::make_unique<drwav>();
     
-    if(!drwav_init_file(audioFile.get(), filePath.c_str(), nullptr))
+    if(!drwav_init_file(audioFile.get(), (const char*)filePath.c_str(), nullptr))
     {
         return nullptr;
     }

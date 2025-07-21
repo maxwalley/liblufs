@@ -8,12 +8,13 @@
 #include <algorithm>
 #include <cmath>
 
+#include "LiblufsAPI.h"
 #include "samplerate.h"
 
 namespace LUFS
 {
 
-class TruePeakMeter
+class LIBLUFS_API TruePeakMeter
 {
 public:
     //Buffers can come in smaller than this but must never exceed this number of samples per channel

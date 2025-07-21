@@ -42,6 +42,8 @@ set_target_properties(lufs PROPERTIES
     CXX_STANDARD_REQUIRED YES
 )
 
+target_compile_definitions(lufs PRIVATE LIBLUFS_EXPORTS)
+
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(test)

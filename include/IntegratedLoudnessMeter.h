@@ -6,6 +6,7 @@
 #include <span>
 #include <iterator>
 
+#include "LiblufsAPI.h"
 #include "ChannelProcessor.h"
 #include "Block.h"
 #include "HistogramBlock.h"
@@ -13,7 +14,7 @@
 namespace LUFS
 {
 
-class IntegratedLoudnessMeter
+class LIBLUFS_API IntegratedLoudnessMeter
 {
 public:
     IntegratedLoudnessMeter(const std::vector<Channel>& channels);

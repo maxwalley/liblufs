@@ -4,12 +4,13 @@
 #include <cmath>
 #include <span>
 
+#include "LiblufsAPI.h"
 #include "ChannelProcessor.h"
 
 namespace LUFS
 {
 
-class FixedTermLoudnessMeter
+class LIBLUFS_API FixedTermLoudnessMeter
 {
 public:
     FixedTermLoudnessMeter(const std::vector<Channel>& channels, const std::chrono::milliseconds& windowLength);
