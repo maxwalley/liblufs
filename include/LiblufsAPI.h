@@ -7,5 +7,5 @@
     #define LIBLUFS_API __declspec(dllimport)
   #endif
 #else
-  #define MYLIB_API
+  #define LIBLUFS_API
 #endif
