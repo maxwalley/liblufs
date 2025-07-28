@@ -12,6 +12,7 @@ FetchContent_MakeAvailable(ebuLoudnessTestSet)
 #Add google test and set it not to build googlemock
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+set(gtest_disable_pthreads ON CACHE BOOL "" FORCE)
 add_subdirectory(googletest)
 
 add_executable(tests 
@@ -38,6 +39,14 @@ target_link_libraries(
 
 include(GoogleTest)
 gtest_discover_tests(tests)
+
+if(WIN32)
+    add_custom_command(
+        TARGET tests PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+            $<TARGET_FILE:lufs>
+            $<TARGET_FILE_DIR:tests>)
+endif()
 
 install(TARGETS tests)
 
