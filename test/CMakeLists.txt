@@ -38,15 +38,25 @@ target_link_libraries(
 )
 
 include(GoogleTest)
-gtest_discover_tests(tests)
+gtest_discover_tests(tests
+    WORKING_DIRECTORY $<TARGET_FILE_DIR:tests>
+)
 
 if(WIN32)
     add_custom_command(
         TARGET tests PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
             $<TARGET_FILE:lufs>
-            $<TARGET_FILE_DIR:tests>)
+            $<TARGET_FILE_DIR:tests>
+        )
 endif()
+
+add_custom_command(
+    TARGET tests PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${ebuloudnesstestset_SOURCE_DIR}
+        $<TARGET_FILE_DIR:tests>/test_content
+)
 
 install(TARGETS tests)
 

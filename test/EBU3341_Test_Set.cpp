@@ -12,7 +12,7 @@
 
 std::optional<std::filesystem::path> getTestContentPath()
 {
-    const std::filesystem::path path = std::filesystem::current_path() / "../_deps/ebuloudnesstestset-src";
+    const std::filesystem::path path = std::filesystem::current_path() / "test_content";
     std::cout << path << std::endl;
 
     return std::filesystem::exists(path) ? path : std::optional<std::filesystem::path>(std::nullopt);
@@ -27,11 +27,12 @@ std::unique_ptr<drwav> openTestFile(std::string_view testFileName)
         return nullptr;
     }
     
-    std::filesystem::path filePath = *contentPath / testFileName;
-    
+    const std::filesystem::path filePath = *contentPath / testFileName;
+    const auto filePathString = filePath.string();
+
     std::unique_ptr<drwav> audioFile = std::make_unique<drwav>();
     
-    if(!drwav_init_file(audioFile.get(), (const char*)filePath.c_str(), nullptr))
+    if(!drwav_init_file(audioFile.get(), filePathString.c_str(), nullptr))
     {
         return nullptr;
     }
