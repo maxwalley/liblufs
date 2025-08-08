@@ -42,6 +42,8 @@ set_target_properties(lufs PROPERTIES
     CXX_STANDARD_REQUIRED YES
 )
 
+add_dependencies(lufs samplerate)
+
 target_compile_definitions(lufs PRIVATE LIBLUFS_EXPORTS)
 
 if(BUILD_TESTS)
