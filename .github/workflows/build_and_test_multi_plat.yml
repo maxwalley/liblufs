@@ -63,4 +63,4 @@ jobs:
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build_dir }}
-      run: ctest --output-on-failure
+      run: ctest --output-on-failure --stop-on-failure
