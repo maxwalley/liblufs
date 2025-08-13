@@ -171,9 +171,13 @@ void IntegratedLoudnessMeter::processCurrentBlock()
     }
     
     calculateBlockLoudness(processBlock);
-    
-    HistogramBlock& histBlock = blockHistogram[getHistogramBinIndexForLoudness(processBlock.loudness)];
-    histBlock.addBlock(processBlock);
+
+    //Ignore loudness values that won't fit into our histogram
+    if(processBlock.loudness > lowestIntegratedValue && processBlock.loudness < highestIntegratedValue)
+    {
+        HistogramBlock& histBlock = blockHistogram[getHistogramBinIndexForLoudness(processBlock.loudness)];
+        histBlock.addBlock(processBlock);
+    }
     
     //Move write pos back to overlap samples
     currentBlockWritePos = blockLengthSamples - overlapLengthSamples;
