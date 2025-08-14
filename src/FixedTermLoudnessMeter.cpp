@@ -3,12 +3,9 @@
 namespace LUFS
 {
     
-FixedTermLoudnessMeter::FixedTermLoudnessMeter(const std::vector<Channel>& channels, const std::chrono::milliseconds& windowLength)  : blockLengthSamples{getBlockLengthSamples(windowLength)}
+FixedTermLoudnessMeter::FixedTermLoudnessMeter(const std::vector<Channel>& channelSet, const std::chrono::milliseconds& windowLength)  : channels{channelSet}, blockLengthSamples{getBlockLengthSamples(windowLength)}, channelProcessors{generateChannelProcessors()}
 {
-    std::transform(channels.begin(), channels.end(), std::back_insert_iterator(channelProcessors), [this](const Channel& channel)
-    {
-        return ChannelProcessor(channel.getWeighting(), blockLengthSamples);
-    });
+    
 }
 
 FixedTermLoudnessMeter::~FixedTermLoudnessMeter()
@@ -18,13 +15,15 @@ FixedTermLoudnessMeter::~FixedTermLoudnessMeter()
 
 void FixedTermLoudnessMeter::process(std::span<const float* const> audio, int numSamplesPerChannel)
 {
-    assert(audio.size() == channelProcessors.size());
+    std::vector<ChannelProcessor>& processors = channelProcessors.realtimeAquire();
+
+    assert(audio.size() == processors.size());
     
     for(size_t sampleIndex = 0; sampleIndex < numSamplesPerChannel; ++sampleIndex)
     {
-        for(int channelIndex = 0; channelIndex < channelProcessors.size(); ++channelIndex)
+        for(int channelIndex = 0; channelIndex < processors.size(); ++channelIndex)
         {
-            channelProcessors[channelIndex].currentBlockData[blockWritePos] =  channelProcessors[channelIndex].filterSample(audio[channelIndex][sampleIndex]);
+            processors[channelIndex].currentBlockData[blockWritePos] =  processors[channelIndex].filterSample(audio[channelIndex][sampleIndex]);
         }
 
         if(++blockWritePos >= blockLengthSamples)
@@ -32,21 +31,25 @@ void FixedTermLoudnessMeter::process(std::span<const float* const> audio, int nu
             blockWritePos = 0;
         }
     }
+
+    channelProcessors.realtimeRelease();
 }
 
 void FixedTermLoudnessMeter::process(std::span<const float> audio)
 {
-    assert(audio.size() % channelProcessors.size() == 0);
+    std::vector<ChannelProcessor>& processors = channelProcessors.realtimeAquire();
 
-    const size_t numSamplesPerChannel = audio.size() / channelProcessors.size();
+    assert(audio.size() % processors.size() == 0);
+
+    const size_t numSamplesPerChannel = audio.size() / processors.size();
     
     const float* inputData = audio.data();
 
     for(size_t sampleIndex = 0; sampleIndex < numSamplesPerChannel; ++sampleIndex)
     {
-        for(int channelIndex = 0; channelIndex < channelProcessors.size(); ++channelIndex)
+        for(int channelIndex = 0; channelIndex < processors.size(); ++channelIndex)
         {
-            channelProcessors[channelIndex].currentBlockData[blockWritePos] =  channelProcessors[channelIndex].filterSample(*inputData++);
+            processors[channelIndex].currentBlockData[blockWritePos] = processors[channelIndex].filterSample(*inputData++);
         }
 
         if(++blockWritePos >= blockLengthSamples)
@@ -54,23 +57,24 @@ void FixedTermLoudnessMeter::process(std::span<const float> audio)
             blockWritePos = 0;
         }
     }
+
+    channelProcessors.realtimeRelease();
 }
 
 void FixedTermLoudnessMeter::reset()
 {
-    std::for_each(channelProcessors.begin(), channelProcessors.end(), [](ChannelProcessor& processor)
-    {
-        processor.reset();
-    });
+    channelProcessors.reset(generateChannelProcessors());
     
     blockWritePos = 0;
 }
 
 float FixedTermLoudnessMeter::getLoudness() const
 {
+    const std::vector<ChannelProcessor>& processors = channelProcessors.nonRealtimeRead();
+
     float accumulatedChannels = 0.0f;
 
-    std::for_each(channelProcessors.begin(), channelProcessors.end(), [&accumulatedChannels](const ChannelProcessor& processor)
+    std::for_each(processors.begin(), processors.end(), [&accumulatedChannels](const ChannelProcessor& processor)
     {
         accumulatedChannels += processor.getCurrentBlockMeanSquares() * processor.getWeighting();
     });
@@ -83,4 +87,16 @@ int FixedTermLoudnessMeter::getBlockLengthSamples(const std::chrono::millisecond
     return (windowLength.count() / 1000.0f) * sampleRate;
 }
     
+std::vector<ChannelProcessor> FixedTermLoudnessMeter::generateChannelProcessors() const
+{
+    std::vector<ChannelProcessor> tempChannelProcessors;
+
+    std::transform(channels.begin(), channels.end(), std::back_insert_iterator(tempChannelProcessors), [this](const Channel& channel)
+    {
+        return ChannelProcessor(channel.getWeighting(), blockLengthSamples);
+    });
+
+    return tempChannelProcessors;
+}
+
 }

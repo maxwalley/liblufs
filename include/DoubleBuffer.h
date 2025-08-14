@@ -12,7 +12,7 @@ template<typename T>
 class DoubleBuffer
 {
 public:
-    DoubleBuffer(const T& initialVal)  : buffers{{initialVal}, {initialVal}}, realtimeCopy{initialVal} {}
+    DoubleBuffer(const T& initialVal)  : buffers{initialVal, initialVal}, realtimeCopy{initialVal} {}
 
     ~DoubleBuffer()
     {
@@ -35,27 +35,27 @@ public:
         control.store((writeIndex & IndexBit) | NewDataBit);
     }
 
-    T& nonRealtimeRead()
+    const T& nonRealtimeRead() const
     {
         int current = control.load();
 
-        if(!current & NewDataBit)
+        if(current & NewDataBit)
         {
-            return;
-        }
+            int newValue;
 
-        int newValue;
+            //CAS loop to spin while busy bit is set, then set the new buffer to write to
+            do
+            {
+                current &= ~BusyBit;
+                newValue = (current ^ IndexBit) & IndexBit;
+            }
+            while(!control.compare_exchange_weak(current, newValue));
 
-        //CAS loop to spin while busy bit is set, then set the new buffer to write to
-        do
-        {
-            current &= ~BusyBit;
-            newValue = (comp ^ IndexBit) & IndexBit;
+            current = newValue;
         }
-        while(!control.compare_exchange_weak(current, newValue));
 
         //Return the last buffer that was written to
-        return buffers[(newValue & IndexBit) & 0x1]
+        return buffers[(current & IndexBit) ^ 0x1];
     }
 
     //This is not realtime safe with the other calls
@@ -74,9 +74,9 @@ private:
         IndexBit = (1 << 0), 
         NewDataBit = (1 << 1), 
         BusyBit = (1 << 2)
-    }
+    };
 
-    std::atomic<int> control;
+    mutable std::atomic<int> control;
 
     std::array<T, 2> buffers;
     T realtimeCopy;

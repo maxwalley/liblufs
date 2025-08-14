@@ -3,7 +3,7 @@
 namespace LUFS
 {
 
-ChannelProcessor::ChannelProcessor(float channelWeighting, size_t blockSizeSamples)  : weighting(channelWeighting), currentBlockData(blockSizeSamples, 0.0f)
+ChannelProcessor::ChannelProcessor(float channelWeighting, size_t blockSizeSamples)  : weighting{channelWeighting}, currentBlockData(blockSizeSamples, 0.0f)
 {
     initialiseFilters();
 

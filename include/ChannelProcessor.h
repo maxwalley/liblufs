@@ -27,7 +27,7 @@ public:
 
 private:
     void initialiseFilters();
-    
+
     float weighting;
 
     Filter filt1;
