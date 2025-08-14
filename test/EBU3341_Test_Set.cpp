@@ -293,7 +293,7 @@ TEST(EBU3341_Test_Set, Test_4)
         }
     };
     
-    processFile(*audioFile, audioBufferCallback, 1024);
+    processFile(*audioFile, audioBufferCallback, maxBufferSize);
     
     std::cout << "Longest meter processing time: " << longestProcessDuration.count() << " microseconds" << std::endl;
     
