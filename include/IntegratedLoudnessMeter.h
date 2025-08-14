@@ -10,6 +10,7 @@
 #include "ChannelProcessor.h"
 #include "Block.h"
 #include "HistogramBlock.h"
+#include "DoubleBuffer.h"
 
 namespace LUFS
 {
@@ -27,7 +28,7 @@ public:
     //This is not threadsafe with process calls
     void reset();
 
-    //This is threadsafe with process calls
+    //This is threadsafe with process calls, but must only be called from a single thread at a time
     float getLoudness() const;
 
 private:
@@ -36,12 +37,13 @@ private:
 
     size_t getHistogramBinIndexForLoudness(float loudness) const;
 
+    std::vector<HistogramBlock> generateBlankHistogram(size_t numChannels) const;
+
     std::vector<ChannelProcessor> channelProcessors;
 
     Block processBlock;
 
-    //For integrated metering only
-    std::vector<HistogramBlock> blockHistogram;
+    DoubleBuffer<std::vector<HistogramBlock>> blockHistogram;
     float histogramMappingSlope = 0.0f;
 
     size_t currentBlockWritePos = 0;
@@ -58,6 +60,7 @@ private:
     static constexpr float highestIntegratedValue = 0.0f;
     static constexpr float lowestIntegratedValue = gateAbsoluteThreshold;
     static constexpr float integratedHistogramResolution = 0.01f;
+    static constexpr size_t numHistogramElements = (1.0f / integratedHistogramResolution) * (highestIntegratedValue - lowestIntegratedValue);
 };
 
 }

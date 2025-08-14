@@ -3,16 +3,13 @@
 namespace LUFS
 {
     
-IntegratedLoudnessMeter::IntegratedLoudnessMeter(const std::vector<Channel>& channels)  : processBlock{channels.size()}
+IntegratedLoudnessMeter::IntegratedLoudnessMeter(const std::vector<Channel>& channels)  : processBlock{channels.size()}, blockHistogram{generateBlankHistogram(channels.size())}
 {
     std::transform(channels.begin(), channels.end(), std::back_insert_iterator(channelProcessors), [this](const Channel& channel)
     {
         return ChannelProcessor(channel.getWeighting(), blockLengthSamples);
     });
     
-    constexpr size_t numHistogramElements = (1.0f / integratedHistogramResolution) * (highestIntegratedValue - lowestIntegratedValue);
-    blockHistogram.resize(numHistogramElements, HistogramBlock{channelProcessors.size()});
-        
     histogramMappingSlope = (numHistogramElements - 1.0f) / (highestIntegratedValue - lowestIntegratedValue);
 }
 
@@ -116,14 +113,16 @@ void IntegratedLoudnessMeter::reset()
         processor.reset();
     });
     
-    std::fill(blockHistogram.begin(), blockHistogram.end(), HistogramBlock{channelProcessors.size()});
-    
+    blockHistogram.reset(generateBlankHistogram(channelProcessors.size()));
+
     currentBlockWritePos = 0;
 }
 
 float IntegratedLoudnessMeter::getLoudness() const
 {
-    const auto calculateLoudnessWithThreshold = [this](const std::optional<float>& threshold)
+    const std::vector<HistogramBlock>& histogram = blockHistogram.nonRealtimeRead();
+
+    const auto calculateLoudnessWithThreshold = [this, &histogram](const std::optional<float>& threshold)
     {
         float channelAccum = 0.0f;
         
@@ -135,7 +134,7 @@ float IntegratedLoudnessMeter::getLoudness() const
             const size_t firstBinIndex = threshold ? getHistogramBinIndexForLoudness(*threshold) : size_t(0);
             
             //THIS NEEDS TO BE WORKED OUT BASED ON LOWEST HIST POS FROM THRESH
-            std::for_each(blockHistogram.begin() + firstBinIndex, blockHistogram.end(), [&](const HistogramBlock& block)
+            std::for_each(histogram.begin() + firstBinIndex, histogram.end(), [&](const HistogramBlock& block)
             {
                 if(block.numBlocks == 0)
                 {
@@ -175,8 +174,12 @@ void IntegratedLoudnessMeter::processCurrentBlock()
     //Ignore loudness values that won't fit into our histogram
     if(processBlock.loudness > lowestIntegratedValue && processBlock.loudness < highestIntegratedValue)
     {
-        HistogramBlock& histBlock = blockHistogram[getHistogramBinIndexForLoudness(processBlock.loudness)];
+        std::vector<HistogramBlock>& histogram = blockHistogram.realtimeAquire();
+
+        HistogramBlock& histBlock = histogram[getHistogramBinIndexForLoudness(processBlock.loudness)];
         histBlock.addBlock(processBlock);
+
+        blockHistogram.realtimeRelease();
     }
     
     //Move write pos back to overlap samples
@@ -199,7 +202,12 @@ void IntegratedLoudnessMeter::calculateBlockLoudness(Block& block) const
 
 size_t IntegratedLoudnessMeter::getHistogramBinIndexForLoudness(float loudness) const
 {
-    return std::min(blockHistogram.size() - 1, std::max(size_t(0), size_t(std::round(histogramMappingSlope * (loudness - lowestIntegratedValue)))));
+    return std::min(numHistogramElements - 1, std::max(size_t(0), size_t(std::round(histogramMappingSlope * (loudness - lowestIntegratedValue)))));
+}
+
+std::vector<HistogramBlock> IntegratedLoudnessMeter::generateBlankHistogram(size_t numChannels) const
+{
+    return std::vector<HistogramBlock>(numHistogramElements, HistogramBlock{numChannels});
 }
 
 }
