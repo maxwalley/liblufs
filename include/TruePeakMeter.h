@@ -10,6 +10,7 @@
 
 #include "LiblufsAPI.h"
 #include "samplerate.h"
+#include "SpinLock.h"
 
 namespace LUFS
 {
@@ -51,7 +52,9 @@ private:
     //12.04dB in gain
     static constexpr float outputGain = 3.999f;
 
-    float currentTruePeakGain = 0.0f;
+    std::atomic<float> currentTruePeakGain = 0.0f;
+
+    SpinLock resetLock;
 };
 
 }

@@ -5,6 +5,8 @@ namespace LUFS
 
 TruePeakMeter::TruePeakMeter(double sampleRate, int numChannels, int maxBufferSize)  : expectedNumChannels(numChannels), bufferSizeLimit(maxBufferSize), sampleRateConversionRatio(targetSampleRate / sampleRate)
 {
+    assert(std::atomic<float>::is_always_lock_free);
+
     int error;
     sampleRateConverter = src_new(SRC_SINC_FASTEST, numChannels, &error);
 
@@ -44,6 +46,13 @@ void TruePeakMeter::process(std::span<const float* const> audio, int numSamplesP
     assert(audio.size() == expectedNumChannels);
     assert(numSamplesPerChannel <= bufferSizeLimit);
 
+    std::unique_lock<SpinLock> lock{resetLock, std::try_to_lock};
+
+    if(!lock)
+    {
+        return;
+    }
+
     if(audio.size() == 0)
     {
         return;
@@ -75,6 +84,13 @@ void TruePeakMeter::process(std::span<const float> audio)
 
     assert(bufferSize <= bufferSizeLimit);
 
+    std::unique_lock<SpinLock> lock{resetLock, std::try_to_lock};
+
+    if(!lock)
+    {
+        return;
+    }
+
     //Set conversion size
     sampleRateConverterState.input_frames = static_cast<int32_t>(bufferSize);
     sampleRateConverterState.output_frames = static_cast<int32_t>(bufferSize) * sampleRateConversionRatio;
@@ -89,17 +105,23 @@ void TruePeakMeter::process(std::span<const float> audio)
 
 void TruePeakMeter::reset()
 {
-    currentTruePeakGain = 0.0f;
+    std::scoped_lock<SpinLock> lock{resetLock};
+
+    src_reset(sampleRateConverter);
+
+    currentTruePeakGain.store(0.0f);
 }
 
 float TruePeakMeter::getTruePeak() const
 {
-    if(currentTruePeakGain == 0.0f)
+    float localTruePeak = currentTruePeakGain.load();
+
+    if(localTruePeak == 0.0f)
     {
         return 0.0f;
     }
 
-    return 20.0f * std::log10(currentTruePeakGain);
+    return 20.0f * std::log10(localTruePeak);
 }
 
 void TruePeakMeter::process()
@@ -117,7 +139,7 @@ void TruePeakMeter::process()
 
     std::for_each(conversionOutputBuffer.begin(), conversionOutputBuffer.end(), [this](float convertedSample)
     {
-        currentTruePeakGain = std::max(std::abs(convertedSample) * outputGain, currentTruePeakGain);
+        currentTruePeakGain.store(std::max(std::abs(convertedSample) * outputGain, currentTruePeakGain.load()));
     });
 }
 
