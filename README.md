@@ -25,3 +25,8 @@ cmake ..
 make
 ctest
 ```
+
+## Licensing
+This project is licensed under the GPL v3.0 license. 
+
+Contact max.walley1@btinternet.com for information regarding commercial licensing.
