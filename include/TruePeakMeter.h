@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <cmath>
+#include <mutex>
 
 #include "LiblufsAPI.h"
 #include "samplerate.h"
