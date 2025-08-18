@@ -14,7 +14,8 @@ namespace LUFS
 class LIBLUFS_API FixedTermLoudnessMeter
 {
 public:
-    FixedTermLoudnessMeter(const std::vector<Channel>& channelSet, const std::chrono::milliseconds& windowLength);
+    //Min level will be used if there is silence or not enough data has been processed
+    FixedTermLoudnessMeter(const std::vector<Channel>& channelSet, const std::chrono::milliseconds& windowLength, float minLevel = -100.0f);
     ~FixedTermLoudnessMeter();
     
     //Deinterleaved and interleaved
@@ -34,6 +35,7 @@ private:
 
     const std::vector<Channel> channels;
     const int blockLengthSamples;
+    const float min;
 
     DoubleBuffer<std::vector<ChannelProcessor>> channelProcessors;
 

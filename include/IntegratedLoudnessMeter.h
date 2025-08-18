@@ -18,7 +18,8 @@ namespace LUFS
 class LIBLUFS_API IntegratedLoudnessMeter
 {
 public:
-    IntegratedLoudnessMeter(const std::vector<Channel>& channels);
+    //Min level will be used if there is silence or not enough data has been processed
+    IntegratedLoudnessMeter(const std::vector<Channel>& channels, float minLevel = -100.0f);
     ~IntegratedLoudnessMeter();
     
     //Deinterleaved and interleaved
@@ -39,6 +40,8 @@ private:
 
     std::vector<HistogramBlock> generateBlankHistogram(size_t numChannels) const;
 
+    const float min;
+    
     std::vector<ChannelProcessor> channelProcessors;
 
     Block processBlock;

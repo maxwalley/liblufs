@@ -3,7 +3,7 @@
 namespace LUFS
 {
     
-FixedTermLoudnessMeter::FixedTermLoudnessMeter(const std::vector<Channel>& channelSet, const std::chrono::milliseconds& windowLength)  : channels{channelSet}, blockLengthSamples{getBlockLengthSamples(windowLength)}, channelProcessors{generateChannelProcessors()}
+FixedTermLoudnessMeter::FixedTermLoudnessMeter(const std::vector<Channel>& channelSet, const std::chrono::milliseconds& windowLength, float minLevel)  : channels{channelSet}, blockLengthSamples{getBlockLengthSamples(windowLength)}, min{minLevel}, channelProcessors{generateChannelProcessors()}
 {
     
 }
@@ -78,6 +78,11 @@ float FixedTermLoudnessMeter::getLoudness() const
     {
         accumulatedChannels += processor.getCurrentBlockMeanSquares() * processor.getWeighting();
     });
+
+    if(accumulatedChannels == 0.0f)
+    {
+        return min;
+    }
 
     return -0.691f + 10.0f * std::log10(accumulatedChannels);
 }

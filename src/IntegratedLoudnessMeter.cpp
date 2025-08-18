@@ -3,7 +3,7 @@
 namespace LUFS
 {
     
-IntegratedLoudnessMeter::IntegratedLoudnessMeter(const std::vector<Channel>& channels)  : processBlock{channels.size()}, blockHistogram{generateBlankHistogram(channels.size())}
+IntegratedLoudnessMeter::IntegratedLoudnessMeter(const std::vector<Channel>& channels, float minLevel = -100.0f)  : min{minLevel}, processBlock{channels.size()}, blockHistogram{generateBlankHistogram(channels.size())}
 {
     std::transform(channels.begin(), channels.end(), std::back_insert_iterator(channelProcessors), [this](const Channel& channel)
     {
@@ -144,8 +144,18 @@ float IntegratedLoudnessMeter::getLoudness() const
                 meanSquaresAccum += block.accumulatedChannelMeanSquares[channelIndex];
                 numBlocksAccum += block.numBlocks;
             });
+
+            if(numBlocksAccum ==  0)
+            {
+                continue;
+            }
             
             channelAccum += channelProcessors[channelIndex].getWeighting() * ((1.0f / float(numBlocksAccum)) * meanSquaresAccum);
+        }
+
+        if(channelAccum == 0.0f)
+        {
+            return (double)min;
         }
         
         return -0.691 + 10 * std::log10(channelAccum);
