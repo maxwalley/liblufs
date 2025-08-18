@@ -19,7 +19,7 @@ class LIBLUFS_API TruePeakMeter
 {
 public:
     //Buffers can come in smaller than this but must never exceed this number of samples per channel
-    TruePeakMeter(double sampleRate, int numChannels, int maxBufferSize);
+    TruePeakMeter(double sampleRate, int numChannels, int maxBufferSize, float minLevel = -100.0f);
     ~TruePeakMeter();
 
     //Deinterleaved and Interleaved
@@ -33,6 +33,8 @@ public:
     float getTruePeak() const;
 
 private:
+    const float min;
+
     void process();
 
     const int expectedNumChannels;

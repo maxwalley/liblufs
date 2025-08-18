@@ -3,7 +3,7 @@
 namespace LUFS
 {
 
-TruePeakMeter::TruePeakMeter(double sampleRate, int numChannels, int maxBufferSize)  : expectedNumChannels(numChannels), bufferSizeLimit(maxBufferSize), sampleRateConversionRatio(targetSampleRate / sampleRate)
+TruePeakMeter::TruePeakMeter(double sampleRate, int numChannels, int maxBufferSize, float minLevel)  : expectedNumChannels{numChannels}, bufferSizeLimit{maxBufferSize}, sampleRateConversionRatio{targetSampleRate / sampleRate}, min{minLevel}
 {
     assert(std::atomic<float>::is_always_lock_free);
 
@@ -118,7 +118,7 @@ float TruePeakMeter::getTruePeak() const
 
     if(localTruePeak == 0.0f)
     {
-        return 0.0f;
+        return min;
     }
 
     return 20.0f * std::log10(localTruePeak);
