@@ -3,6 +3,9 @@
 #include <atomic>
 #include <thread>
 
+namespace LUFS
+{
+
 class SpinLock
 {
 public:
@@ -31,3 +34,5 @@ public:
 private:
     std::atomic<bool> lockedFlag = false;
 };
+
+}
