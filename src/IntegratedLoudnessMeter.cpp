@@ -118,51 +118,26 @@ void IntegratedLoudnessMeter::reset()
     currentBlockWritePos = 0;
 }
 
+float IntegratedLoudnessMeter::getLoudnessRealtime()
+{
+    const std::vector<HistogramBlock>& histogram = blockHistogram.realtimeAquire();
+    
+    float relativeThreshold = calculateLoudnessWithThreshold(histogram, gateAbsoluteThreshold);
+    float loudness = calculateLoudnessWithThreshold(histogram, relativeThreshold - 10.0f);
+
+    blockHistogram.realtimeRelease();
+
+    return loudness;
+}
+
 float IntegratedLoudnessMeter::getLoudness() const
 {
+    std::scoped_lock<std::mutex> lock{histogramOfflineLock};
+
     const std::vector<HistogramBlock>& histogram = blockHistogram.nonRealtimeRead();
-
-    const auto calculateLoudnessWithThreshold = [this, &histogram](const std::optional<float>& threshold)
-    {
-        float channelAccum = 0.0f;
-        
-        for(int channelIndex = 0; channelIndex < channelProcessors.size(); ++channelIndex)
-        {
-            float meanSquaresAccum = 0.0f;
-            size_t numBlocksAccum = 0;
-            
-            const size_t firstBinIndex = threshold ? getHistogramBinIndexForLoudness(*threshold) : size_t(0);
-            
-            //THIS NEEDS TO BE WORKED OUT BASED ON LOWEST HIST POS FROM THRESH
-            std::for_each(histogram.begin() + firstBinIndex, histogram.end(), [&](const HistogramBlock& block)
-            {
-                if(block.numBlocks == 0)
-                {
-                    return;
-                }
-                
-                meanSquaresAccum += block.accumulatedChannelMeanSquares[channelIndex];
-                numBlocksAccum += block.numBlocks;
-            });
-
-            if(numBlocksAccum ==  0)
-            {
-                continue;
-            }
-            
-            channelAccum += channelProcessors[channelIndex].getWeighting() * ((1.0f / float(numBlocksAccum)) * meanSquaresAccum);
-        }
-
-        if(channelAccum == 0.0f)
-        {
-            return (double)min;
-        }
-        
-        return -0.691 + 10 * std::log10(channelAccum);
-    };
     
-    float relativeThreshold = calculateLoudnessWithThreshold(gateAbsoluteThreshold);
-    return calculateLoudnessWithThreshold(relativeThreshold - 10.0f);
+    float relativeThreshold = calculateLoudnessWithThreshold(histogram, gateAbsoluteThreshold);
+    return calculateLoudnessWithThreshold(histogram, relativeThreshold - 10.0f);
 }
 
 void IntegratedLoudnessMeter::processCurrentBlock()
@@ -218,6 +193,44 @@ size_t IntegratedLoudnessMeter::getHistogramBinIndexForLoudness(float loudness) 
 std::vector<HistogramBlock> IntegratedLoudnessMeter::generateBlankHistogram(size_t numChannels) const
 {
     return std::vector<HistogramBlock>(numHistogramElements, HistogramBlock{numChannels});
+}
+
+double IntegratedLoudnessMeter::calculateLoudnessWithThreshold(const std::vector<HistogramBlock>& histogram, const std::optional<float>& threshold) const
+{
+    float channelAccum = 0.0f;
+        
+    for(int channelIndex = 0; channelIndex < channelProcessors.size(); ++channelIndex)
+    {
+        float meanSquaresAccum = 0.0f;
+        size_t numBlocksAccum = 0;
+            
+        const size_t firstBinIndex = threshold ? getHistogramBinIndexForLoudness(*threshold) : size_t(0);
+            
+        std::for_each(histogram.begin() + firstBinIndex, histogram.end(), [&](const HistogramBlock& block)
+        {
+            if(block.numBlocks == 0)
+            {
+                return;
+            }
+                
+            meanSquaresAccum += block.accumulatedChannelMeanSquares[channelIndex];
+            numBlocksAccum += block.numBlocks;
+        });
+
+        if(numBlocksAccum ==  0)
+        {
+            continue;
+        }
+            
+        channelAccum += channelProcessors[channelIndex].getWeighting() * ((1.0f / float(numBlocksAccum)) * meanSquaresAccum);
+    }
+
+    if(channelAccum == 0.0f)
+    {
+        return (double)min;
+    }
+        
+    return -0.691 + 10 * std::log10(channelAccum);
 }
 
 }

@@ -29,7 +29,10 @@ public:
     //This is not threadsafe with process calls
     void reset();
 
-    //This is threadsafe with process calls, but must only be called from a single thread at a time
+    //This is for getting the loudness on the same thread as process calls, it is not threadsafe with process calls
+    float getLoudnessRealtime();
+
+    //This is threadsafe with process calls and itself
     float getLoudness() const;
 
 private:
@@ -40,12 +43,15 @@ private:
 
     std::vector<HistogramBlock> generateBlankHistogram(size_t numChannels) const;
 
+    double calculateLoudnessWithThreshold(const std::vector<HistogramBlock>& histogram, const std::optional<float>& threshold) const;
+
     const float min;
     
     std::vector<ChannelProcessor> channelProcessors;
 
     Block processBlock;
 
+    mutable std::mutex histogramOfflineLock;
     DoubleBuffer<std::vector<HistogramBlock>> blockHistogram;
     float histogramMappingSlope = 0.0f;
 
