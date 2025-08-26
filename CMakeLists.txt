@@ -47,9 +47,10 @@ add_dependencies(lufs samplerate)
 target_compile_definitions(lufs PRIVATE LIBLUFS_EXPORTS)
 
 if(BUILD_TESTS)
-    enable_testing()
-    add_subdirectory(test)
+   enable_testing()
+   add_subdirectory(test)
 endif()
 
-install(TARGETS lufs
-    PUBLIC_HEADER DESTINATION include)
+install(TARGETS lufs DESTINATION lib)
+
+install(DIRECTORY include/ DESTINATION include)
