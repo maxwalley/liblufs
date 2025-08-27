@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cmath>
 #include <span>
+#include <mutex>
 
 #include "LiblufsAPI.h"
 #include "DoubleBuffer.h"
@@ -25,7 +26,10 @@ public:
     //This is not threadsafe with process calls
     void reset();
 
-    //This is threadsafe with process calls, but must only be called from a single thread at a time
+    //This can only be called from the same thread as the process calls
+    float getLoudnessRealtime();
+
+    //This is threadsafe with process calls
     float getLoudness() const;
 
 private:
@@ -37,6 +41,7 @@ private:
     const int blockLengthSamples;
     const float min;
 
+    mutable std::mutex channelProcessorsOfflineLock;
     DoubleBuffer<std::vector<ChannelProcessor>> channelProcessors;
 
     size_t blockWritePos = 0;

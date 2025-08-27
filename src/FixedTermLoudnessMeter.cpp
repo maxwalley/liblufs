@@ -68,8 +68,33 @@ void FixedTermLoudnessMeter::reset()
     blockWritePos = 0;
 }
 
+float FixedTermLoudnessMeter::getLoudnessRealtime()
+{
+    const std::vector<ChannelProcessor>& processors = channelProcessors.realtimeAquire();
+
+    float accumulatedChannels = 0.0f;
+
+    std::for_each(processors.begin(), processors.end(), [&accumulatedChannels](const ChannelProcessor& processor)
+    {
+        accumulatedChannels += processor.getCurrentBlockMeanSquares() * processor.getWeighting();
+    });
+
+    if(accumulatedChannels == 0.0f)
+    {
+        return min;
+    }
+
+    float loudness = -0.691f + 10.0f * std::log10(accumulatedChannels);
+
+    channelProcessors.realtimeRelease();
+
+    return loudness;
+}
+
 float FixedTermLoudnessMeter::getLoudness() const
 {
+    std::scoped_lock<std::mutex> lock{channelProcessorsOfflineLock};
+
     const std::vector<ChannelProcessor>& processors = channelProcessors.nonRealtimeRead();
 
     float accumulatedChannels = 0.0f;
