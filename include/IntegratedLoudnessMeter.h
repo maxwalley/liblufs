@@ -5,6 +5,7 @@
 #include <cmath>
 #include <span>
 #include <iterator>
+#include <mutex>
 
 #include "LiblufsAPI.h"
 #include "ChannelProcessor.h"
