@@ -1,7 +1,7 @@
 [![Build and test on multiple platforms](https://github.com/maxwalley/liblufs/actions/workflows/build_and_test_multi_plat.yml/badge.svg)](https://github.com/maxwalley/liblufs/actions/workflows/build_and_test_multi_plat.yml)
 
 # liblufs - Live Laugh LUF
-A C++ library for measuring loudness according to ITU 1770-5 and EBU R128
+A C++ library for realtime safe measurement of loudness according to ITU 1770-5 and EBU R128
 
 Build Instructions:
 ```
